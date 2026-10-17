@@ -487,7 +487,8 @@ var rep = {key:null, months:[], data:null};
 function fmt(n){return Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2})}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function pad(x){return (x<10?'0':'')+x}
-function hhmm(t){var d=new Date(t);return pad(d.getHours())+':'+pad(d.getMinutes())}
+function t12(s){return String(s==null?'':s).replace(/(\d{1,2}):(\d{2})(?::\d{2})?(?!\d)/,function(m,h,mi){h=+h;var ap=h<12?'AM':'PM';return (h%12||12)+':'+mi+' '+ap})}
+function hhmm(t){var d=new Date(t);return t12(pad(d.getHours())+':'+pad(d.getMinutes()))}
 
 /* ---------- شبكة ---------- */
 function api(method, payload, conf, extra){
@@ -659,11 +660,11 @@ function render(){
   chips('methChips',s.config.methods,'meth');
   chips('srcChips',s.config.sources,'src');
   $('recentX').innerHTML=(s.recent&&s.recent.length)?s.recent.map(function(r){
-    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.category)+'</b><span>'+esc(r.category)+(r.purpose?' · '+esc(r.purpose):'')+(r.account?' · '+esc(r.account):'')+(r.yer?' · '+fmt(r.yer)+' يمني':'')+' · '+(r.pending?'⏳ ينتظر الإرسال':esc(r.date))+'</span></div><div class="a">'+fmt(r.amount)+'</div></div>'}).join('')
+    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.category)+'</b><span>'+esc(r.category)+(r.purpose?' · '+esc(r.purpose):'')+(r.account?' · '+esc(r.account):'')+(r.yer?' · '+fmt(r.yer)+' يمني':'')+' · '+(r.pending?'⏳ ينتظر الإرسال':esc(t12(r.date)))+'</span></div><div class="a">'+fmt(r.amount)+'</div></div>'}).join('')
     :'<div class="empty">ما فيه مصاريف مسجلة بعد.</div>';
   $('iMonth').textContent=m.label; $('iTotal').textContent=fmt(m.income||0);
   $('recentI').innerHTML=(s.recentIncome&&s.recentIncome.length)?s.recentIncome.map(function(r){
-    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.source)+'</b><span>'+esc(r.source)+(r.account?' · '+esc(r.account):'')+' · '+(r.pending?'⏳ ينتظر الإرسال':esc(r.date))+'</span></div><div class="a pos">+'+fmt(r.amount)+'</div></div>'}).join('')
+    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.source)+'</b><span>'+esc(r.source)+(r.account?' · '+esc(r.account):'')+' · '+(r.pending?'⏳ ينتظر الإرسال':esc(t12(r.date)))+'</span></div><div class="a pos">+'+fmt(r.amount)+'</div></div>'}).join('')
     :'<div class="empty">ما فيه مداخيل مسجلة بعد.</div>';
   var sel=$('pItem'), cur=sel.value;
   sel.innerHTML=s.config.items.map(function(i){
@@ -924,7 +925,7 @@ function renderAccounts(){
     '<div class="tot"><span>الإجمالي</span><b>'+fmt(s.balance)+'</b></div>';
   var tr=s.recentTransfers||[];
   $('tfRecent').innerHTML=tr.length?tr.map(function(o){
-    return '<div class="rec"><div class="t"><b>من '+esc(o.from)+' إلى '+esc(o.to)+'</b><span>'+esc(o.notes?o.notes+' · ':'')+(o.pending?'⏳ ينتظر الإرسال':esc(o.date))+'</span></div><div class="a">'+fmt(o.amount)+'</div>'+(o.pending?'':
+    return '<div class="rec"><div class="t"><b>من '+esc(o.from)+' إلى '+esc(o.to)+'</b><span>'+esc(o.notes?o.notes+' · ':'')+(o.pending?'⏳ ينتظر الإرسال':esc(t12(o.date)))+'</span></div><div class="a">'+fmt(o.amount)+'</div>'+(o.pending?'':
       '<button class="x" aria-label="حذف" data-del="transfer" data-row="'+o.row+'" data-ts="'+o.ts+'" data-lbl="'+esc('تحويل '+fmt(o.amount))+'">✕</button>')+'</div>'}).join(''):'<div class="empty">ما فيه تحويلات.</div>';
 }
 function openAcc(){ $('accMsg').textContent=''; var d=$('accDlg'); if(d.showModal) d.showModal(); else d.setAttribute('open',''); }
@@ -1028,10 +1029,10 @@ function drawReport(r,fromCache){
   } else h+='<div class="empty">ما فيه بنود.</div>';
   h+='</section>';
   // القوائم
-  h+=listSec('المصاريف',r.expenses,'expense',function(o){return {t:o.desc||o.category,s:o.category+(o.purpose?' · '+o.purpose:'')+(o.account?' · '+o.account:'')+(o.yer?' · '+fmt(o.yer)+' يمني':'')+' · '+o.date,a:fmt(o.amount),c:''}});
-  h+=listSec('الدفعات',r.payments,'payment',function(o){return {t:o.item+(o.part?' — '+o.part:''),s:(o.method?o.method+' · ':'')+(o.account?o.account+' · ':'')+(o.notes?o.notes+' · ':'')+o.date,a:fmt(o.amount),c:''}});
-  h+=listSec('المداخيل',r.incomes,'income',function(o){return {t:o.desc||o.source,s:o.source+(o.account?' · '+o.account:'')+' · '+o.date,a:'+'+fmt(o.amount),c:'pos'}});
-  h+=listSec('التحويلات',r.transfers||[],'transfer',function(o){return {t:'من '+o.from+' إلى '+o.to,s:(o.notes?o.notes+' · ':'')+o.date,a:fmt(o.amount),c:''}});
+  h+=listSec('المصاريف',r.expenses,'expense',function(o){return {t:o.desc||o.category,s:o.category+(o.purpose?' · '+o.purpose:'')+(o.account?' · '+o.account:'')+(o.yer?' · '+fmt(o.yer)+' يمني':'')+' · '+t12(o.date),a:fmt(o.amount),c:''}});
+  h+=listSec('الدفعات',r.payments,'payment',function(o){return {t:o.item+(o.part?' — '+o.part:''),s:(o.method?o.method+' · ':'')+(o.account?o.account+' · ':'')+(o.notes?o.notes+' · ':'')+t12(o.date),a:fmt(o.amount),c:''}});
+  h+=listSec('المداخيل',r.incomes,'income',function(o){return {t:o.desc||o.source,s:o.source+(o.account?' · '+o.account:'')+' · '+t12(o.date),a:'+'+fmt(o.amount),c:'pos'}});
+  h+=listSec('التحويلات',r.transfers||[],'transfer',function(o){return {t:'من '+o.from+' إلى '+o.to,s:(o.notes?o.notes+' · ':'')+t12(o.date),a:fmt(o.amount),c:''}});
   // كل الأشهر
   h+='<section class="card"><h2 class="t">كل الأشهر</h2><div class="tblw"><table><thead><tr><th>الشهر</th><th>الدخل</th><th>شهري</th><th>بنود</th><th>الصافي</th></tr></thead><tbody>'+
     r.all.slice().reverse().map(function(a){return '<tr'+(a.key===r.month.key?' class="cur"':'')+'><td>'+esc(a.label)+'</td><td>'+fmt(a.income)+'</td><td>'+fmt(a.monthly)+'</td><td>'+fmt(a.external)+'</td><td class="'+(a.net>=0?'pos':'neg')+'">'+fmt(a.net)+'</td></tr>'}).join('')+
