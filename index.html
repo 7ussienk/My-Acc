@@ -487,7 +487,7 @@ var rep = {key:null, months:[], data:null};
 function fmt(n){return Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2})}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function pad(x){return (x<10?'0':'')+x}
-function t12(s){return String(s==null?'':s).replace(/(\d{1,2}):(\d{2})(?::\d{2})?(?!\d)/,function(m,h,mi){h=+h;var ap=h<12?'AM':'PM';return (h%12||12)+':'+mi+' '+ap})}
+function t12(s){s=String(s==null?'':s);return s?'\u2066'+s.replace(/(\d{1,2}):(\d{2})(?::\d{2})?(?!\d)/,function(m,h,mi){h=+h;var ap=h<12?'AM':'PM';return (h%12||12)+':'+mi+' '+ap})+'\u2069':''}
 function hhmm(t){var d=new Date(t);return t12(pad(d.getHours())+':'+pad(d.getMinutes()))}
 
 /* ---------- شبكة ---------- */
