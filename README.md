@@ -1,6 +1,7 @@
 # حساباتي — صفحة إدخال المصاريف
 
-الملفات اللي ترفعها على GitHub: `index.html` و `manifest.webmanifest` و `sw.js` و `icon-180.png` و `icon-512.png`.
-لا ترفع الرقم السري ولا رابط الخلفية: تكتبهما من ⚙ داخل التطبيق وتنحفظ على جوالك فقط.
+الملفات اللي ترفعها على GitHub: index.html و config.js و manifest.webmanifest و sw.js و icon-180.png و icon-512.png
 
-الخلفية (`Code.gs`) تُلصق داخل Google Sheets (الإضافات ← Apps Script) وليست جزءًا من الموقع.
+- افتح config.js وضع رابط الخلفية (Apps Script) مرة واحدة. الرقم السري لا تكتبه فيه أبدًا.
+- الرقم السري يُكتب من ⚙ داخل التطبيق، وينحفظ على الجهاز.
+- Code.gs يُلصق داخل Google Sheets (الإضافات ← Apps Script) وليس جزءًا من الموقع.

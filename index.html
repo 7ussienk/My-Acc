@@ -181,10 +181,14 @@ dialog p{margin:0 0 6px;color:var(--mute);font-size:13px}
   <form method="dialog" id="dlgForm">
     <h2>الإعدادات</h2>
     <p>تُحفظ على هذا الجوال فقط (لا ترفعها على GitHub).</p>
+    <div class="hidden" id="storeWarn" style="background:rgba(192,57,43,.12);color:var(--red);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:13px;font-weight:700">⚠ المتصفح ما يحفظ الإعدادات (غالبًا وضع التصفح الخاص أو متصفح داخل تطبيق مثل واتساب). افتح الرابط في Safari أو Chrome العادي.</div>
+    <div id="urlRow">
     <label class="l" for="cfgUrl">رابط الخلفية (Apps Script)</label>
     <input id="cfgUrl" class="ltr" inputmode="url" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
     <label class="l" for="cfgPin">الرقم السري</label>
-    <input id="cfgPin" class="ltr" type="password" autocomplete="off">
+    <input id="cfgPin" class="ltr" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button type="button" class="link" id="btnShowPin">👁 إظهار الرقم للتأكد</button>
     <div class="row2" style="margin-top:16px">
       <button class="primary" style="margin:0;min-height:50px;font-size:16px" id="cfgSave" value="save">حفظ واختبار</button>
       <button class="sub" value="cancel">إغلاق</button>
@@ -194,15 +198,34 @@ dialog p{margin:0 0 6px;color:var(--mute);font-size:13px}
 
 <div class="toast" id="toast" role="status"><span id="toastTxt"></span><button id="toastBtn" class="hidden"></button></div>
 
+<script src="config.js"></script>
 <script>
 (function(){
 'use strict';
 var $ = function(id){return document.getElementById(id)};
+var cookiePath = location.pathname.replace(/[^\/]*$/,'') || '/';
+function readCookie(k){var m=document.cookie.match(new RegExp('(?:^|; )'+k+'=([^;]*)'));return m?decodeURIComponent(m[1]):null}
+function writeCookie(k,v){try{document.cookie=k+'='+encodeURIComponent(v)+'; max-age=31536000; path='+cookiePath+'; SameSite=Lax'}catch(e){}}
+var storageOK = (function(){try{localStorage.setItem('_t','1');var ok=localStorage.getItem('_t')==='1';localStorage.removeItem('_t');return ok}catch(e){return false}})();
 var store = {
-  get:function(k,d){try{var v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},
-  set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  get:function(k,d){
+    try{var v=localStorage.getItem(k);if(v!==null)return JSON.parse(v)}catch(e){}
+    if(k==='cfg'){try{var c=readCookie('hcfg');if(c)return JSON.parse(c)}catch(e){}}
+    return d;
+  },
+  set:function(k,v){
+    try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}
+    if(k==='cfg') writeCookie('hcfg',JSON.stringify(v));   // نسخة احتياطية لو المتصفح ما يحفظ localStorage
+  }
 };
+try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
 var cfg = store.get('cfg',{url:'',pin:''});
+var CFGURL = (window.HESABATI && window.HESABATI.url) ? String(window.HESABATI.url).trim() : '';
+if(CFGURL) cfg.url = CFGURL;                    // الرابط ثابت من config.js ولا يُطلب منك
+(function(){                                     // رابط جاهز: index.html#pin=123456 يحفظ الرقم تلقائيًا
+  var m=location.hash.match(/[#&]pin=([^&]+)/);
+  if(m){cfg.pin=decodeURIComponent(m[1]);store.set('cfg',cfg)}
+})();
 var state = store.get('state',null);
 var queue = store.get('queue',[]);
 var tab = 'expense';
@@ -377,16 +400,27 @@ function refresh(){
 }
 
 /* ---------- الإعدادات ---------- */
+function normPin(v){  // يحوّل الأرقام العربية والفارسية لإنجليزية ويشيل المسافات
+  return String(v||'').replace(/[\u0660-\u0669]/g,function(d){return d.charCodeAt(0)-0x0660})
+    .replace(/[\u06F0-\u06F9]/g,function(d){return d.charCodeAt(0)-0x06F0}).replace(/\s+/g,'');
+}
+cfg.pin=normPin(cfg.pin);
+$('btnShowPin').addEventListener('click',function(){
+  var i=$('cfgPin'); var show=i.type==='password'; i.type=show?'text':'password';
+  this.textContent=show?'🙈 إخفاء الرقم':'👁 إظهار الرقم للتأكد';
+});
 var dlg=$('dlg');
 function openSettings(){
   $('cfgUrl').value=cfg.url||''; $('cfgPin').value=cfg.pin||'';
+  $('urlRow').classList.toggle('hidden',!!CFGURL);
+  $('storeWarn').classList.toggle('hidden',storageOK);
   if(dlg.showModal) dlg.showModal(); else dlg.setAttribute('open','');
 }
 $('btnSettings').addEventListener('click',openSettings);
 $('dlgForm').addEventListener('submit',function(e){
   var v=e.submitter&&e.submitter.value;
   if(v!=='save') return;
-  cfg={url:$('cfgUrl').value.trim(),pin:$('cfgPin').value.trim()}; store.set('cfg',cfg);
+  cfg={url:CFGURL||$('cfgUrl').value.trim(),pin:normPin($('cfgPin').value)}; store.set('cfg',cfg);
   api('GET').then(function(r){
     if(r&&r.ok){state=r;store.set('state',state);render();toast('تم الاتصال بالملف ✓');flush()}
     else toast((r&&r.error)||'الرابط أو الرقم السري غير صحيح',{err:true,ms:6000});
