@@ -208,7 +208,7 @@ dialog h2{margin:0 0 8px;font-size:17px}
 
 <div id="scroll"><div class="wrap">
 
-<div class="pending" id="pending"><span id="pendingTxt"></span><button class="sub" id="btnRetry">أرسل الآن</button></div>
+<div class="pending" id="pending"><span id="pendingTxt"></span><span style="display:flex;gap:6px"><button class="sub" id="btnPendList">عرض</button><button class="sub" id="btnRetry">أرسل</button></span></div>
 
 <!-- ============ مصروف ============ -->
 <section class="pg on" id="pg-expense">
@@ -384,6 +384,14 @@ dialog h2{margin:0 0 8px;font-size:17px}
   <button class="sub" style="width:100%;margin-top:14px" id="accClose">إغلاق</button>
 </dialog>
 
+<!-- المعلّق -->
+<dialog id="pendDlg">
+  <h2 style="font-size:19px;color:var(--navy)">تسجيلات تنتظر الإرسال</h2>
+  <p style="color:var(--mute);font-size:13px;margin:6px 0 4px">محفوظة على جوالك وتُرسل تلقائيًا عند عودة الاتصال. تقدر تلغي أي واحد قبل إرساله.</p>
+  <div id="pendList"></div>
+  <button class="sub" style="width:100%;margin-top:14px" id="pendClose">إغلاق</button>
+</dialog>
+
 <!-- تأكيد الحذف -->
 <dialog id="cfm">
   <h2 id="cfmTxt">تأكيد</h2>
@@ -465,6 +473,7 @@ if(CFGURL) cfg.url = CFGURL;
 cfg.pin = normPin(cfg.pin);
 var NOPART = 'بدون تفصيل';
 var state = store.get('state',null);
+var view = null;                 // الحالة المعروضة = آخر حالة مزامنة + التسجيلات المعلّقة
 var queue = store.get('queue',[]);
 var lockSec = Number(store.get('lockSec',30));
 var lastSync = store.get('lastSync',0);
@@ -631,7 +640,7 @@ $$('.nb').forEach(function(b){b.addEventListener('click',function(){setPage(b.ge
 function stOf(spent,limit){return limit>0?(spent>limit?'bad':(spent>=0.8*limit?'warn':'ok')):''}
 function render(){
   renderPending();
-  var s=state; if(!s) return;
+  var s=view=effState(); if(!s) return;
   var m=s.month, pct=m.limit>0?Math.min(100,Math.round(m.spent/m.limit*100)):0;
   $('hBal').textContent=fmt(s.balance);
   $('sMonth').textContent=m.label; $('sSpent').textContent=fmt(m.spent); $('sLimit').textContent=fmt(m.limit);
@@ -650,11 +659,11 @@ function render(){
   chips('methChips',s.config.methods,'meth');
   chips('srcChips',s.config.sources,'src');
   $('recentX').innerHTML=(s.recent&&s.recent.length)?s.recent.map(function(r){
-    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.category)+'</b><span>'+esc(r.category)+(r.purpose?' · '+esc(r.purpose):'')+(r.account?' · '+esc(r.account):'')+(r.yer?' · '+fmt(r.yer)+' يمني':'')+' · '+esc(r.date)+'</span></div><div class="a">'+fmt(r.amount)+'</div></div>'}).join('')
+    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.category)+'</b><span>'+esc(r.category)+(r.purpose?' · '+esc(r.purpose):'')+(r.account?' · '+esc(r.account):'')+(r.yer?' · '+fmt(r.yer)+' يمني':'')+' · '+(r.pending?'⏳ ينتظر الإرسال':esc(r.date))+'</span></div><div class="a">'+fmt(r.amount)+'</div></div>'}).join('')
     :'<div class="empty">ما فيه مصاريف مسجلة بعد.</div>';
   $('iMonth').textContent=m.label; $('iTotal').textContent=fmt(m.income||0);
   $('recentI').innerHTML=(s.recentIncome&&s.recentIncome.length)?s.recentIncome.map(function(r){
-    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.source)+'</b><span>'+esc(r.source)+(r.account?' · '+esc(r.account):'')+' · '+esc(r.date)+'</span></div><div class="a pos">+'+fmt(r.amount)+'</div></div>'}).join('')
+    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.source)+'</b><span>'+esc(r.source)+(r.account?' · '+esc(r.account):'')+' · '+(r.pending?'⏳ ينتظر الإرسال':esc(r.date))+'</span></div><div class="a pos">+'+fmt(r.amount)+'</div></div>'}).join('')
     :'<div class="empty">ما فيه مداخيل مسجلة بعد.</div>';
   var sel=$('pItem'), cur=sel.value;
   sel.innerHTML=s.config.items.map(function(i){
@@ -668,8 +677,8 @@ function chips(id,list,key){
   $(id).innerHTML=(list||[]).map(function(v){return '<button type="button" class="chip" data-k="'+key+'" data-v="'+esc(v)+'" aria-pressed="'+(pick[key]===v)+'">'+esc(v)+'</button>'}).join('');
 }
 function curItem(){
-  if(!state) return null; var n=$('pItem').value;
-  for(var i=0;i<state.config.items.length;i++) if(state.config.items[i].name===n) return state.config.items[i];
+  if(!view) return null; var n=$('pItem').value;
+  for(var i=0;i<view.config.items.length;i++) if(view.config.items[i].name===n) return view.config.items[i];
   return null;
 }
 function partsHtml(it){
@@ -726,6 +735,77 @@ function updateConv(){
 $('xAmt').addEventListener('input',updateConv);
 
 /* ---------- الطابور (بدون نت) ---------- */
+function r3(x){return Math.round(x*1000)/1000}
+function effState(){
+  if(!state) return null;
+  var s=JSON.parse(JSON.stringify(state));
+  if(!queue.length) return s;
+  var rate=Number(s.config.rate)||411, ym=todayStr().slice(0,7), m=s.month, accs=s.accounts||[];
+  function acc(n,d){
+    for(var i=0;i<accs.length;i++) if(accs[i].name===n){accs[i].balance=r3(Number(accs[i].balance)+d);break}
+    s.balance=r3(Number(s.balance)+d);
+  }
+  queue.forEach(function(q){
+    var p=q.p||{}, a=Number(p.amount)||0, inM=!p.date||String(p.date).slice(0,7)===ym, dl=p.date||todayStr();
+    if(p.action==='expense'){
+      var sar=p.currency==='YER'?r3(a/rate):a;
+      acc(p.account,-sar);
+      if(inM){m.spent=r3(m.spent+sar);m.remaining=r3(m.remaining-sar);m.count=(m.count||0)+1}
+      s.recent=[{desc:p.desc,category:p.category,purpose:p.purpose,account:p.account,amount:sar,yer:p.currency==='YER'?a:0,date:dl,pending:true}].concat(s.recent||[]);
+    } else if(p.action==='payment'){
+      acc(p.account,-a);
+      (s.config.items||[]).forEach(function(it){
+        if(it.name!==p.item) return;
+        it.paid=r3((Number(it.paid)||0)+a);
+        var pn=p.part||NOPART, f=null;
+        it.parts=it.parts||[]; it.parts.forEach(function(x){if(x.name===pn)f=x});
+        if(f) f.amount=r3(f.amount+a); else it.parts.push({name:pn,amount:a});
+        it.last=[{date:'⏳',part:p.part||'',amount:a}].concat(it.last||[]);
+      });
+    } else if(p.action==='income'){
+      acc(p.account,a);
+      if(inM) m.income=r3((Number(m.income)||0)+a);
+      s.recentIncome=[{desc:p.desc,source:p.source,account:p.account,amount:a,date:dl,pending:true}].concat(s.recentIncome||[]);
+    } else if(p.action==='transfer'){
+      acc(p.from,-a); acc(p.to,a);
+      s.recentTransfers=[{from:p.from,to:p.to,amount:a,notes:p.notes,date:dl,pending:true}].concat(s.recentTransfers||[]);
+    } else if(p.action==='item'){
+      var ex=false; s.config.items.forEach(function(it){if(it.name===p.name)ex=true});
+      if(!ex) s.config.items.push({name:p.name,budget:(p.budget>0?p.budget:null),paid:0,parts:[],last:[]});
+    }
+  });
+  return s;
+}
+function qDesc(q){
+  var p=q.p||{}, y=p.currency==='YER'?' يمني':'';
+  if(p.action==='expense') return 'مصروف '+fmt(p.amount)+y+' · '+p.category+' · '+p.account;
+  if(p.action==='payment') return 'دفعة '+fmt(p.amount)+' · '+p.item+(p.part?' ('+p.part+')':'')+' · '+p.account;
+  if(p.action==='income') return 'دخل '+fmt(p.amount)+' · '+p.source+' · '+p.account;
+  if(p.action==='transfer') return 'تحويل '+fmt(p.amount)+' من '+p.from+' إلى '+p.to;
+  if(p.action==='item') return 'بند جديد: '+p.name;
+  return 'عملية';
+}
+function renderPendList(){
+  var el=$('pendList');
+  el.innerHTML=queue.length?queue.map(function(q,i){
+    return '<div class="rec"><div class="t"><b>'+esc(qDesc(q))+'</b><span>'+(q.p&&q.p.desc?esc(q.p.desc)+' · ':'')+hhmm(q.p.ts||Date.now())+'</span></div><button class="x" aria-label="إلغاء" data-qdel="'+i+'">✕</button></div>'}).join('')
+    :'<div class="empty">ما فيه شيء معلّق.</div>';
+}
+$('btnPendList').addEventListener('click',function(){renderPendList();var d=$('pendDlg');if(d.showModal)d.showModal();else d.setAttribute('open','')});
+$('pendClose').addEventListener('click',function(){var d=$('pendDlg');if(d.close)d.close();else d.removeAttribute('open')});
+document.addEventListener('click',function(e){
+  var t=e.target; if(!t.closest) return;
+  var b=t.closest('[data-qdel]'); if(!b) return;
+  var i=Number(b.getAttribute('data-qdel')), q=queue[i]; if(!q) return;
+  if(sending&&i===0){toast('جارٍ إرسال هذا التسجيل الآن',{err:true});return}
+  var n=1;
+  if(q.p&&q.p.action==='item'){      // إلغاء بند يلغي الدفعات المعلّقة عليه
+    queue=queue.filter(function(x,j){if(j===i)return false;if(x.p&&x.p.action==='payment'&&x.p.item===q.p.name){n++;return false}return true});
+  } else queue.splice(i,1);
+  store.set('queue',queue); render(); renderPendList();
+  if(!queue.length){var d=$('pendDlg');if(d.close)d.close();else d.removeAttribute('open')}
+  toast(n>1?('أُلغي '+n+' تسجيلات'):'أُلغي التسجيل');
+});
 function renderPending(){
   var n=queue.length, el=$('pending');
   el.classList.toggle('on',n>0);
@@ -777,7 +857,7 @@ function submitForm(kind,build,btn){
       toast('تم التسجيل ✓',{action:undo});
     } else toast((r&&r.error)||'تعذّر التسجيل',{err:true,ms:6000});
   }).catch(function(er){
-    if(er.net){ queue.push({p:p}); store.set('queue',queue); clearForm(kind); markSync(false); renderPending(); toast('ما فيه اتصال، انحفظ على الجوال وبيرسل لاحقًا') }
+    if(er.net){ queue.push({p:p}); store.set('queue',queue); clearForm(kind); markSync(false); render(); toast('ما فيه اتصال، انحفظ على الجوال وبيرسل لاحقًا') }
     else toast('تعذّر التسجيل',{err:true});
   }).then(function(){btn.disabled=false});
 }
@@ -809,10 +889,15 @@ function undoRow(sheet,row,ts){
 $('btnSaveItem').addEventListener('click',function(){
   var name=$('niName').value.trim(); if(!name){toast('اكتب اسم البند',{err:true});return}
   var p={action:'item',name:name}; var b=$('niBudget').value.trim(); if(b) p.budget=parseFloat(b);
+  var dup=false; if(view) view.config.items.forEach(function(it){if(it.name===name)dup=true});
+  if(dup){toast('البند موجود مسبقًا',{err:true});return}
   api('POST',p).then(function(r){
     if(r&&r.ok){state=r.state;store.set('state',state);render();$('pItem').value=name;renderItemCard();$('niName').value='';$('niBudget').value='';$('newItemBox').classList.add('hidden');toast('انضاف البند ✓')}
     else toast((r&&r.error)||'تعذّر',{err:true,ms:6000});
-  }).catch(function(){toast('تحتاج اتصال لإضافة بند جديد',{err:true})});
+  }).catch(function(er){
+    if(er&&er.net){queue.push({p:p});store.set('queue',queue);markSync(false);render();$('pItem').value=name;renderItemCard();$('niName').value='';$('niBudget').value='';$('newItemBox').classList.add('hidden');toast('انحفظ البند على الجوال وبيرسل لاحقًا')}
+    else toast('تعذّر إضافة البند',{err:true});
+  });
 });
 
 /* ---------- تحديث ---------- */
@@ -827,7 +912,7 @@ function refresh(){
 
 /* ================= الحسابات والتحويل ================= */
 function renderAccounts(){
-  var s=state; if(!s) return;
+  var s=view; if(!s) return;
   var A=s.accounts||[];
   $('accList').innerHTML=A.map(function(a,i){
     return '<div class="accrow"><div class="ar"><span>'+esc(a.name)+'</span><b>'+fmt(a.balance)+'</b></div>'+
@@ -839,8 +924,8 @@ function renderAccounts(){
     '<div class="tot"><span>الإجمالي</span><b>'+fmt(s.balance)+'</b></div>';
   var tr=s.recentTransfers||[];
   $('tfRecent').innerHTML=tr.length?tr.map(function(o){
-    return '<div class="rec"><div class="t"><b>من '+esc(o.from)+' إلى '+esc(o.to)+'</b><span>'+esc(o.notes?o.notes+' · ':'')+esc(o.date)+'</span></div><div class="a">'+fmt(o.amount)+'</div>'+
-      '<button class="x" aria-label="حذف" data-del="transfer" data-row="'+o.row+'" data-ts="'+o.ts+'" data-lbl="'+esc('تحويل '+fmt(o.amount))+'">✕</button></div>'}).join(''):'<div class="empty">ما فيه تحويلات.</div>';
+    return '<div class="rec"><div class="t"><b>من '+esc(o.from)+' إلى '+esc(o.to)+'</b><span>'+esc(o.notes?o.notes+' · ':'')+(o.pending?'⏳ ينتظر الإرسال':esc(o.date))+'</span></div><div class="a">'+fmt(o.amount)+'</div>'+(o.pending?'':
+      '<button class="x" aria-label="حذف" data-del="transfer" data-row="'+o.row+'" data-ts="'+o.ts+'" data-lbl="'+esc('تحويل '+fmt(o.amount))+'">✕</button>')+'</div>'}).join(''):'<div class="empty">ما فيه تحويلات.</div>';
 }
 function openAcc(){ $('accMsg').textContent=''; var d=$('accDlg'); if(d.showModal) d.showModal(); else d.setAttribute('open',''); }
 function closeAcc(){ var d=$('accDlg'); if(d.close) d.close(); else d.removeAttribute('open') }
@@ -872,13 +957,25 @@ document.addEventListener('click',function(e){
 });
 
 /* ================= التقرير ================= */
+var prefBusy=false;
+function prefetchReports(months){          // يحفظ كل الأشهر للعرض بدون نت
+  if(prefBusy||!months||!cfg.url||!cfg.pin) return;
+  var todo=months.slice(-12).map(function(m){return m.key}).filter(function(k){return !store.get('rep:'+k,null)});
+  if(!todo.length) return;
+  prefBusy=true;
+  var go=function(){
+    var k=todo.shift(); if(!k||locked){prefBusy=false;return}
+    api('GET',null,null,{action:'report',month:k}).then(function(r){if(r&&r.ok)store.set('rep:'+r.month.key,r)}).then(go,function(){prefBusy=false});
+  };
+  setTimeout(go,1500);
+}
 function loadReport(key){
   var k=key||''; rep.want=k;
   var cached=k?store.get('rep:'+k,null):null;
   if(cached) drawReport(cached,true); else if(!rep.data) $('repBody').innerHTML='<div class="empty" style="text-align:center;padding:30px 0">جارٍ التحميل…</div>';
   if(!cfg.url||!cfg.pin||locked) return;
   api('GET',null,null,{action:'report',month:k}).then(function(r){
-    if(r&&r.ok){ store.set('rep:'+r.month.key,r); if(page==='report'&&(!rep.want||rep.want===r.month.key)) drawReport(r,false); markSync(true) }
+    if(r&&r.ok){ store.set('rep:'+r.month.key,r); if(page==='report'&&(!rep.want||rep.want===r.month.key)) drawReport(r,false); markSync(true); prefetchReports(r.months) }
     else if(r&&r.error) toast(r.error,{err:true,ms:6000});
   }).catch(function(){ markSync(false); if(!cached&&!rep.data) $('repBody').innerHTML='<div class="empty" style="text-align:center;padding:30px 0">تحتاج اتصال لعرض التقرير.</div>' });
 }
