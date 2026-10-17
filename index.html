@@ -42,7 +42,9 @@ header{position:absolute;top:0;left:0;right:0;z-index:40;background:var(--bg);
 .hin{max-width:560px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px}
 h1{font-size:23px;font-weight:800;margin:0;color:var(--navy);letter-spacing:-.3px}
 .hbal{font-size:14px;color:var(--mute);background:var(--card);border:1px solid var(--line);padding:7px 14px;border-radius:99px;font-weight:700}
+.hbal{font:inherit;font-size:14px;font-weight:700;cursor:pointer}
 .hbal b{color:var(--ink);font-size:16px}
+.hbal .sw{color:var(--teal);font-size:15px}
 #scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
   padding:calc(var(--sat) + 78px) 16px calc(112px + var(--sab))}
 .wrap{max-width:560px;margin:0 auto}
@@ -141,6 +143,21 @@ td:first-child,th:first-child{text-align:start;position:sticky;inset-inline-star
 tr.cur td{background:var(--soft)}
 .note{font-size:12px;color:var(--mute);text-align:center;margin:6px 0 12px}
 
+/* الحسابات */
+.accrow{padding:10px 0;border-top:1px solid var(--line)}
+.accrow:first-of-type{border-top:0}
+.accrow .ar{display:flex;justify-content:space-between;align-items:baseline;font-size:17px;font-weight:700}
+.accrow .ar b{font-size:20px;direction:ltr;unicode-bidi:isolate}
+.sm2{font-size:12px;color:var(--mute);margin-top:2px}
+.recbox{display:flex;gap:8px;margin-top:8px}
+.recbox input{min-height:46px}
+.recbox .sub{white-space:nowrap}
+.tot{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--line);margin-top:6px;padding-top:10px;font-weight:800}
+.tot b{font-size:22px;direction:ltr;unicode-bidi:isolate}
+#accDlg{max-height:88vh;overflow-y:auto;width:min(94vw,460px)}
+.msg{min-height:20px;font-size:13px;font-weight:700;color:var(--green);margin-top:8px;text-align:center}
+.msg.err{color:var(--red)}
+.pb{margin:8px 0}.pb .r{display:flex;justify-content:space-between;font-size:15px}
 /* إشعارات */
 .pending{display:none;background:rgba(201,138,0,.15);color:var(--amber);border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;margin-bottom:12px}
 .pending.on{display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -186,7 +203,7 @@ dialog h2{margin:0 0 8px;font-size:17px}
 <div id="app">
 <header><div class="hin">
   <h1>حساباتي</h1>
-  <div class="hbal">الرصيد <b id="hBal">—</b></div>
+  <button class="hbal" id="hBalBtn" aria-label="الحسابات والتحويل">الرصيد <b id="hBal">—</b> <span class="sw">⇄</span></button>
 </div></header>
 
 <div id="scroll"><div class="wrap">
@@ -204,10 +221,20 @@ dialog h2{margin:0 0 8px;font-size:17px}
   <form class="card" id="fx" autocomplete="off">
     <label class="l">التصنيف</label>
     <div class="chips" id="catChips"></div>
+    <label class="l">الغرض</label>
+    <div class="chips" id="purpChips"></div>
+    <label class="l">من أي حساب؟</label>
+    <div class="chips" id="accChipsX"></div>
     <label class="l" for="xDesc">على إيش صرفت؟ (اختياري)</label>
     <input id="xDesc" maxlength="120" placeholder="مثال: غداء">
-    <label class="l" for="xAmt">المبلغ (ريال)</label>
+    <label class="l">العملة</label>
+    <div class="chips">
+      <button type="button" class="chip" data-k="cur" data-v="YER" aria-pressed="true">ريال يمني</button>
+      <button type="button" class="chip" data-k="cur" data-v="SAR" aria-pressed="false">ريال سعودي</button>
+    </div>
+    <label class="l" for="xAmt" id="xAmtLbl">المبلغ (ريال يمني)</label>
     <input id="xAmt" class="amount" inputmode="decimal" placeholder="0" aria-label="المبلغ">
+    <div class="sm2" id="xConv" style="text-align:center;min-height:20px;margin-top:6px;font-size:14px;font-weight:700;color:var(--teal)"></div>
     <button type="button" class="link" data-date="xDate">📅 تاريخ آخر (غير اليوم)</button>
     <input id="xDate" type="date" class="hidden">
     <button class="primary" type="submit">تسجيل المصروف</button>
@@ -237,6 +264,8 @@ dialog h2{margin:0 0 8px;font-size:17px}
     <label class="l" for="pAmt">المبلغ (ريال)</label>
     <input id="pAmt" class="amount" inputmode="decimal" placeholder="0" aria-label="المبلغ">
 
+    <label class="l">من أي حساب؟</label>
+    <div class="chips" id="accChipsP"></div>
     <label class="l">طريقة الدفع</label>
     <div class="chips" id="methChips"></div>
     <label class="l" for="pNotes">مدفوع لمن / ملاحظة (اختياري)</label>
@@ -256,6 +285,8 @@ dialog h2{margin:0 0 8px;font-size:17px}
   <form class="card" id="fi" autocomplete="off">
     <label class="l" style="margin-top:0">المصدر</label>
     <div class="chips" id="srcChips"></div>
+    <label class="l">دخل في أي حساب؟</label>
+    <div class="chips" id="accChipsI"></div>
     <label class="l" for="iDesc">ملاحظة (اختياري)</label>
     <input id="iDesc" maxlength="120" placeholder="مثال: راتب أكتوبر">
     <label class="l" for="iAmt">المبلغ (ريال)</label>
@@ -286,6 +317,16 @@ dialog h2{margin:0 0 8px;font-size:17px}
     <a class="sub hidden" id="btnSheet" style="display:block;margin-top:10px;text-align:center;line-height:46px;text-decoration:none" target="_blank" rel="noopener">فتح ملف Google Sheets</a>
   </section>
   <section class="card">
+    <h2 class="t">الحسابات</h2>
+    <div id="setAcc"></div>
+    <button class="sub" style="margin-top:12px;width:100%" id="btnAccOpen">الحسابات والتحويل ⇄</button>
+  </section>
+  <section class="card">
+    <h2 class="t">سعر الصرف</h2>
+    <label class="l" for="rateIn" style="margin-top:0">كم ريال يمني = 1 ريال سعودي</label>
+    <div class="recbox" style="margin-top:0"><input id="rateIn" inputmode="decimal" class="ltr"><button class="sub" id="btnRate">حفظ</button></div>
+  </section>
+  <section class="card">
     <h2 class="t">القفل</h2>
     <label class="l" for="lockSel" style="margin-top:0">اطلب الرقم السري عند الرجوع للتطبيق بعد</label>
     <select id="lockSel">
@@ -307,7 +348,7 @@ dialog h2{margin:0 0 8px;font-size:17px}
       <button class="sub danger" style="width:100%;margin-top:14px" id="btnForget">فصل هذا الجهاز</button>
     </div>
   </details>
-  <div class="note">حساباتي · الإصدار 3.2<br><span id="dbg" dir="ltr"></span></div>
+  <div class="note">حساباتي · الإصدار 4.1<br><span id="dbg" dir="ltr"></span></div>
 </section>
 
 </div></div>
@@ -324,6 +365,24 @@ dialog h2{margin:0 0 8px;font-size:17px}
 <div class="toast" id="toast" role="status"><span id="toastTxt"></span><button id="toastBtn" class="hidden"></button></div>
 
 </div>
+
+<!-- الحسابات والتحويل -->
+<dialog id="accDlg">
+  <h2 style="font-size:19px;color:var(--navy)">الحسابات</h2>
+  <div id="accList"></div>
+  <div class="tot"><span>الإجمالي</span><b id="accTotal">0</b></div>
+  <h2 style="margin-top:20px;font-size:17px;color:var(--navy)">تحويل بين الحسابات</h2>
+  <label class="l" style="margin-top:8px">من</label><div class="chips" id="tfFrom"></div>
+  <label class="l">إلى</label><div class="chips" id="tfTo"></div>
+  <label class="l" for="tfAmt">المبلغ (ريال)</label>
+  <input id="tfAmt" class="amount" inputmode="decimal" placeholder="0">
+  <input id="tfNotes" maxlength="120" placeholder="ملاحظة (اختياري)" style="margin-top:10px">
+  <button class="primary" id="tfBtn" style="margin-top:14px;min-height:52px;font-size:17px">تحويل</button>
+  <div class="msg" id="accMsg"></div>
+  <h2 class="t" style="margin-top:12px">آخر التحويلات</h2>
+  <div id="tfRecent"></div>
+  <button class="sub" style="width:100%;margin-top:14px" id="accClose">إغلاق</button>
+</dialog>
 
 <!-- تأكيد الحذف -->
 <dialog id="cfm">
@@ -411,7 +470,8 @@ var lockSec = Number(store.get('lockSec',30));
 var lastSync = store.get('lastSync',0);
 var online = null;               // null غير معروف | true | false
 var page = 'expense';
-var pick = {cat:'',meth:'',src:''};
+var pick = {cat:'',meth:'',src:'',acc:'',purp:'',tf:'',tt:'',cur:store.get('lastCur','YER')};
+var RATE = 411;
 var sending = false, toastTimer = null;
 var rep = {key:null, months:[], data:null};
 
@@ -439,6 +499,7 @@ function api(method, payload, conf, extra){
 /* ---------- رسائل ---------- */
 function toast(msg,opts){
   opts=opts||{};
+  var ad=$('accDlg'); if(ad&&ad.open){var m=$('accMsg'); m.textContent=msg; m.className='msg'+(opts.err?' err':'')}
   var el=$('toast'); $('toastTxt').textContent=msg;
   el.classList.toggle('err',!!opts.err);
   var b=$('toastBtn');
@@ -579,15 +640,21 @@ function render(){
   $('sBadge').textContent={bad:'تجاوزت الحد',warn:'قارب الحد',ok:'ضمن الحد','':'—'}[st];
   $('sBadge').className='badge '+st;
   $('sBar').className='bar '+st; $('sBar').firstElementChild.style.width=pct+'%';
+  RATE=Number(s.config.rate)||411; updateConv();
+  var A=s.config.accounts||[];
+  if(!pick.acc||A.indexOf(pick.acc)<0){var la=store.get('lastAcc','');pick.acc=A.indexOf(la)>=0?la:(A[0]||'')}
+  chips('accChipsX',A,'acc'); chips('accChipsP',A,'acc'); chips('accChipsI',A,'acc');
+  chips('purpChips',s.config.purposes||[],'purp');
+  renderAccounts();
   chips('catChips',s.config.categories,'cat');
   chips('methChips',s.config.methods,'meth');
   chips('srcChips',s.config.sources,'src');
   $('recentX').innerHTML=(s.recent&&s.recent.length)?s.recent.map(function(r){
-    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.category)+'</b><span>'+esc(r.category)+' · '+esc(r.date)+'</span></div><div class="a">'+fmt(r.amount)+'</div></div>'}).join('')
+    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.category)+'</b><span>'+esc(r.category)+(r.purpose?' · '+esc(r.purpose):'')+(r.account?' · '+esc(r.account):'')+(r.yer?' · '+fmt(r.yer)+' يمني':'')+' · '+esc(r.date)+'</span></div><div class="a">'+fmt(r.amount)+'</div></div>'}).join('')
     :'<div class="empty">ما فيه مصاريف مسجلة بعد.</div>';
   $('iMonth').textContent=m.label; $('iTotal').textContent=fmt(m.income||0);
   $('recentI').innerHTML=(s.recentIncome&&s.recentIncome.length)?s.recentIncome.map(function(r){
-    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.source)+'</b><span>'+esc(r.source)+' · '+esc(r.date)+'</span></div><div class="a pos">+'+fmt(r.amount)+'</div></div>'}).join('')
+    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.source)+'</b><span>'+esc(r.source)+(r.account?' · '+esc(r.account):'')+' · '+esc(r.date)+'</span></div><div class="a pos">+'+fmt(r.amount)+'</div></div>'}).join('')
     :'<div class="empty">ما فيه مداخيل مسجلة بعد.</div>';
   var sel=$('pItem'), cur=sel.value;
   sel.innerHTML=s.config.items.map(function(i){
@@ -595,7 +662,7 @@ function render(){
     return '<option value="'+esc(i.name)+'">'+esc(i.name)+left+'</option>'}).join('');
   if(cur) sel.value=cur;
   renderItemCard();
-  renderSettings();
+  renderSettings(); resetPick();
 }
 function chips(id,list,key){
   $(id).innerHTML=(list||[]).map(function(v){return '<button type="button" class="chip" data-k="'+key+'" data-v="'+esc(v)+'" aria-pressed="'+(pick[key]===v)+'">'+esc(v)+'</button>'}).join('');
@@ -638,11 +705,25 @@ document.addEventListener('click',function(e){
   var c=t.closest('.chip[data-k]'); if(!c) return;
   var k=c.getAttribute('data-k'), v=c.getAttribute('data-v');
   pick[k]=(pick[k]===v&&k==='meth')?'':v;
-  $$('.chip[data-k="'+k+'"]').forEach(function(x){x.setAttribute('aria-pressed',String(x.getAttribute('data-v')===pick[k]))});
+  if(k==='acc') store.set('lastAcc',v);
+  if(k==='cur'){store.set('lastCur',v);updateConv()}
+  var AL=(state&&state.config.accounts)||[];
+  if((k==='tf'||k==='tt')&&AL.length===2){var other=AL.filter(function(x){return x!==v})[0]; if(k==='tf')pick.tt=other; else pick.tf=other}
+  resetPick();
 });
 function todayStr(){var n=new Date();return n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate())}
 $('btnNewItem').addEventListener('click',function(){$('newItemBox').classList.toggle('hidden');$('niName').focus()});
 $('btnCancelItem').addEventListener('click',function(){$('newItemBox').classList.add('hidden')});
+
+/* ---------- العملة ---------- */
+function updateConv(){
+  var yer=pick.cur==='YER';
+  $('xAmtLbl').textContent=yer?'المبلغ (ريال يمني)':'المبلغ (ريال سعودي)';
+  var raw=String($('xAmt').value).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace('،','.').replace(',','.');
+  var v=parseFloat(raw);
+  $('xConv').textContent=yer?(v>0?('≈ '+fmt(Math.round(v/RATE*1000)/1000)+' ريال سعودي  (الصرف '+RATE+')'):('يتحول تلقائيًا للسعودي (÷ '+RATE+')')):'';
+}
+$('xAmt').addEventListener('input',updateConv);
 
 /* ---------- الطابور (بدون نت) ---------- */
 function renderPending(){
@@ -679,7 +760,8 @@ function base(amtId,dateId){
 }
 function resetPick(){$$('.chip[data-k]').forEach(function(x){x.setAttribute('aria-pressed',String(pick[x.getAttribute('data-k')]===x.getAttribute('data-v')))})}
 function clearForm(kind){
-  if(kind==='expense'){$('xAmt').value='';$('xDesc').value='';pick.cat='';$('xDate').value='';$('xDate').classList.add('hidden')}
+  if(kind==='transfer'){$('tfAmt').value='';$('tfNotes').value=''}
+  if(kind==='expense'){$('xAmt').value='';updateConv();$('xDesc').value='';pick.cat='';pick.purp='';$('xDate').value='';$('xDate').classList.add('hidden')}
   if(kind==='payment'){$('pAmt').value='';$('pNotes').value='';$('pPart').value='';pick.meth='';$('pDate').value='';$('pDate').classList.add('hidden')}
   if(kind==='income'){$('iAmt').value='';$('iDesc').value='';pick.src='';$('iDate').value='';$('iDate').classList.add('hidden')}
   resetPick();
@@ -701,20 +783,21 @@ function submitForm(kind,build,btn){
 }
 $('fx').addEventListener('submit',function(e){e.preventDefault();
   submitForm('expense',function(){
-    var p=base('xAmt','xDate'); if(!pick.cat) throw new Error('اختر التصنيف');
-    p.action='expense';p.category=pick.cat;p.desc=$('xDesc').value.trim();return p;
+    var p=base('xAmt','xDate'); if(!pick.cat) throw new Error('اختر التصنيف'); if(!pick.purp) throw new Error('اختر: لنفسي أو للبيت'); if(!pick.acc) throw new Error('اختر الحساب');
+    p.action='expense';p.category=pick.cat;p.purpose=pick.purp;p.account=pick.acc;p.currency=pick.cur;p.desc=$('xDesc').value.trim();return p;
   },e.target.querySelector('.primary'));
 });
 $('fp').addEventListener('submit',function(e){e.preventDefault();
   submitForm('payment',function(){
     var p=base('pAmt','pDate'); if(!$('pItem').value) throw new Error('اختر البند');
-    p.action='payment';p.item=$('pItem').value;p.method=pick.meth;p.notes=$('pNotes').value.trim();p.part=$('pPart').value.trim();return p;
+    if(!pick.acc) throw new Error('اختر الحساب');
+    p.action='payment';p.item=$('pItem').value;p.account=pick.acc;p.method=pick.meth;p.notes=$('pNotes').value.trim();p.part=$('pPart').value.trim();return p;
   },e.target.querySelector('.primary[type=submit]'));
 });
 $('fi').addEventListener('submit',function(e){e.preventDefault();
   submitForm('income',function(){
-    var p=base('iAmt','iDate'); if(!pick.src) throw new Error('اختر المصدر');
-    p.action='income';p.source=pick.src;p.desc=$('iDesc').value.trim();return p;
+    var p=base('iAmt','iDate'); if(!pick.src) throw new Error('اختر المصدر'); if(!pick.acc) throw new Error('اختر الحساب');
+    p.action='income';p.source=pick.src;p.account=pick.acc;p.desc=$('iDesc').value.trim();return p;
   },e.target.querySelector('.primary'));
 });
 function undoRow(sheet,row,ts){
@@ -742,6 +825,52 @@ function refresh(){
   }).catch(function(){markSync(false)});
 }
 
+/* ================= الحسابات والتحويل ================= */
+function renderAccounts(){
+  var s=state; if(!s) return;
+  var A=s.accounts||[];
+  $('accList').innerHTML=A.map(function(a,i){
+    return '<div class="accrow"><div class="ar"><span>'+esc(a.name)+'</span><b>'+fmt(a.balance)+'</b></div>'+
+      '<button class="link" data-rec="'+i+'" style="padding:4px 0">تعديل الرصيد</button>'+
+      '<div class="recbox hidden" id="rb'+i+'"><input id="ri'+i+'" inputmode="decimal" placeholder="الرصيد الفعلي في البنك"><button class="sub" data-save="'+esc(a.name)+'" data-i="'+i+'">حفظ</button></div></div>'}).join('');
+  $('accTotal').textContent=fmt(s.balance);
+  chips('tfFrom',s.config.accounts||[],'tf'); chips('tfTo',s.config.accounts||[],'tt');
+  $('setAcc').innerHTML=A.map(function(a){return '<div class="accrow"><div class="ar"><span>'+esc(a.name)+'</span><b>'+fmt(a.balance)+'</b></div></div>'}).join('')+
+    '<div class="tot"><span>الإجمالي</span><b>'+fmt(s.balance)+'</b></div>';
+  var tr=s.recentTransfers||[];
+  $('tfRecent').innerHTML=tr.length?tr.map(function(o){
+    return '<div class="rec"><div class="t"><b>من '+esc(o.from)+' إلى '+esc(o.to)+'</b><span>'+esc(o.notes?o.notes+' · ':'')+esc(o.date)+'</span></div><div class="a">'+fmt(o.amount)+'</div>'+
+      '<button class="x" aria-label="حذف" data-del="transfer" data-row="'+o.row+'" data-ts="'+o.ts+'" data-lbl="'+esc('تحويل '+fmt(o.amount))+'">✕</button></div>'}).join(''):'<div class="empty">ما فيه تحويلات.</div>';
+}
+function openAcc(){ $('accMsg').textContent=''; var d=$('accDlg'); if(d.showModal) d.showModal(); else d.setAttribute('open',''); }
+function closeAcc(){ var d=$('accDlg'); if(d.close) d.close(); else d.removeAttribute('open') }
+$('hBalBtn').addEventListener('click',openAcc);
+$('btnAccOpen').addEventListener('click',openAcc);
+$('accClose').addEventListener('click',closeAcc);
+$('tfBtn').addEventListener('click',function(){
+  submitForm('transfer',function(){
+    var p=base('tfAmt','tfAmt'); delete p.date;
+    if(!pick.tf) throw new Error('اختر الحساب المحوَّل منه'); if(!pick.tt) throw new Error('اختر الحساب المحوَّل إليه');
+    if(pick.tf===pick.tt) throw new Error('اختر حسابين مختلفين');
+    p.action='transfer';p.from=pick.tf;p.to=pick.tt;p.notes=$('tfNotes').value.trim();return p;
+  },this);
+});
+document.addEventListener('click',function(e){
+  var t=e.target; if(!t.closest) return;
+  var r=t.closest('[data-rec]');
+  if(r){var b=$('rb'+r.getAttribute('data-rec')); b.classList.toggle('hidden'); if(!b.classList.contains('hidden')) $('ri'+r.getAttribute('data-rec')).focus(); return}
+  var sv=t.closest('[data-save]');
+  if(sv){
+    var name=sv.getAttribute('data-save'), i=sv.getAttribute('data-i'), raw=String($('ri'+i).value).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace('،','.').replace(',','.');
+    var v=parseFloat(raw); if(!isFinite(v)){toast('اكتب الرصيد',{err:true});return}
+    sv.disabled=true;
+    api('POST',{action:'reconcile',account:name,balance:v}).then(function(x){
+      if(x&&x.ok){state=x.state;store.set('state',state);markSync(true);render();toast('تم ضبط رصيد '+name+' ✓')}
+      else toast((x&&x.error)||'تعذّر',{err:true,ms:6000});
+    }).catch(function(){toast('تحتاج اتصال لضبط الرصيد',{err:true})}).then(function(){sv.disabled=false});
+  }
+});
+
 /* ================= التقرير ================= */
 function loadReport(key){
   var k=key||''; rep.want=k;
@@ -765,6 +894,17 @@ function drawReport(r,fromCache){
   h+='<div class="kpis">'+
     kpi('الدخل',fmt(r.income),'pos')+kpi('مصاريف شهرية',fmt(r.monthly),'')+
     kpi('دفعات البنود',fmt(r.external),'')+kpi('الصافي',(r.net>0?'+':'')+fmt(r.net),r.net>=0?'pos':'neg')+'</div>';
+  if(r.accounts&&r.accounts.length){
+    h+='<section class="card"><h2 class="t">الحسابات</h2>'+r.accounts.map(function(a){
+      return '<div class="accrow"><div class="ar"><span>'+esc(a.name)+'</span><b>'+fmt(a.balance)+'</b></div><div class="sm2">هذا الشهر: دخل '+fmt(a.inn)+' · صرف '+fmt(a.out)+'</div></div>'}).join('')+
+      '<div class="tot"><span>الإجمالي</span><b>'+fmt(r.balance)+'</b></div></section>';
+  }
+  if(r.purposes&&r.purposes.length){
+    var ptot=r.purposes.reduce(function(a,x){return a+x.amount},0)||1;
+    h+='<section class="card"><h2 class="t">لنفسي أم للبيت؟ (المصاريف الشهرية)</h2>'+r.purposes.map(function(x){
+      return '<div class="pb"><div class="r"><span>'+esc(x.name)+'</span><b>'+fmt(x.amount)+' <span style="color:var(--mute);font-weight:600;font-size:12px">'+Math.round(x.amount/ptot*100)+'%</span></b></div><div class="bar thin acc"><i style="width:'+Math.round(x.amount/ptot*100)+'%"></i></div></div>'}).join('')+
+      (r.home?'<div class="sum-row" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px"><span>للبيت (مصاريف + دفعات بنود)</span><b>'+fmt(r.home.total)+'</b></div>':'')+'</section>';
+  }
   h+='<section class="card"><div class="sum-top"><span class="sum-month">حد المصروف الشهري</span><span class="badge '+L.status+'">'+({bad:'تجاوزت الحد',warn:'قارب الحد',ok:'ضمن الحد','':'—'}[L.status])+'</span></div>'+
     '<div class="big">'+fmt(L.spent)+' <small>من '+fmt(L.amount)+' ريال</small></div>'+
     '<div class="bar '+L.status+'"><i style="width:'+Math.min(100,L.pct)+'%"></i></div>'+
@@ -791,14 +931,15 @@ function drawReport(r,fromCache){
   } else h+='<div class="empty">ما فيه بنود.</div>';
   h+='</section>';
   // القوائم
-  h+=listSec('المصاريف',r.expenses,'expense',function(o){return {t:o.desc||o.category,s:o.category+' · '+o.date,a:fmt(o.amount),c:''}});
-  h+=listSec('الدفعات',r.payments,'payment',function(o){return {t:o.item+(o.part?' — '+o.part:''),s:(o.method?o.method+' · ':'')+(o.notes?o.notes+' · ':'')+o.date,a:fmt(o.amount),c:''}});
-  h+=listSec('المداخيل',r.incomes,'income',function(o){return {t:o.desc||o.source,s:o.source+' · '+o.date,a:'+'+fmt(o.amount),c:'pos'}});
+  h+=listSec('المصاريف',r.expenses,'expense',function(o){return {t:o.desc||o.category,s:o.category+(o.purpose?' · '+o.purpose:'')+(o.account?' · '+o.account:'')+(o.yer?' · '+fmt(o.yer)+' يمني':'')+' · '+o.date,a:fmt(o.amount),c:''}});
+  h+=listSec('الدفعات',r.payments,'payment',function(o){return {t:o.item+(o.part?' — '+o.part:''),s:(o.method?o.method+' · ':'')+(o.account?o.account+' · ':'')+(o.notes?o.notes+' · ':'')+o.date,a:fmt(o.amount),c:''}});
+  h+=listSec('المداخيل',r.incomes,'income',function(o){return {t:o.desc||o.source,s:o.source+(o.account?' · '+o.account:'')+' · '+o.date,a:'+'+fmt(o.amount),c:'pos'}});
+  h+=listSec('التحويلات',r.transfers||[],'transfer',function(o){return {t:'من '+o.from+' إلى '+o.to,s:(o.notes?o.notes+' · ':'')+o.date,a:fmt(o.amount),c:''}});
   // كل الأشهر
   h+='<section class="card"><h2 class="t">كل الأشهر</h2><div class="tblw"><table><thead><tr><th>الشهر</th><th>الدخل</th><th>شهري</th><th>بنود</th><th>الصافي</th></tr></thead><tbody>'+
     r.all.slice().reverse().map(function(a){return '<tr'+(a.key===r.month.key?' class="cur"':'')+'><td>'+esc(a.label)+'</td><td>'+fmt(a.income)+'</td><td>'+fmt(a.monthly)+'</td><td>'+fmt(a.external)+'</td><td class="'+(a.net>=0?'pos':'neg')+'">'+fmt(a.net)+'</td></tr>'}).join('')+
     '</tbody></table></div></section>';
-  h+='<div class="note">الرصيد الحالي (كل الأشهر): <b>'+fmt(r.balance)+'</b> ريال</div>';
+  h+='<div class="note">إجمالي الحسابات الآن: <b>'+fmt(r.balance)+'</b> ريال</div>';
   $('repBody').innerHTML=h;
 }
 function kpi(l,v,c){return '<div class="kpi"><span>'+l+'</span><b class="'+c+'">'+v+'</b></div>'}
@@ -832,6 +973,7 @@ function renderSettings(){
   else if(online===true || lastSync){dot.className='dot ok';tx.textContent='مرتبط بالملف'+(lastSync?' · آخر تحديث '+hhmm(lastSync):'')}
   else {dot.className='dot';tx.textContent='جارٍ الاتصال…'}
   $('lockSel').value=String(lockSec);
+  if(document.activeElement!==$('rateIn')&&state) $('rateIn').value=String(RATE);
   $('storeWarn').classList.toggle('hidden',storageOK);
   var sb=$('btnSheet'); if(SHEETURL){sb.href=SHEETURL;sb.classList.remove('hidden')}
 }
@@ -841,6 +983,14 @@ $('btnSync').addEventListener('click',function(){
 });
 $('lockSel').addEventListener('change',function(){lockSec=Number(this.value);store.set('lockSec',lockSec);toast('تم الحفظ ✓')});
 $('btnLockNow').addEventListener('click',lockApp);
+$('btnRate').addEventListener('click',function(){
+  var v=parseFloat(String($('rateIn').value).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace('،','.').replace(',','.'));
+  if(!(v>=10)){toast('سعر الصرف غير صحيح',{err:true});return}
+  api('POST',{action:'setrate',rate:v}).then(function(x){
+    if(x&&x.ok){state=x.state;store.set('state',state);render();toast('تم حفظ سعر الصرف ✓')}
+    else toast((x&&x.error)||'تعذّر',{err:true,ms:6000});
+  }).catch(function(){toast('تحتاج اتصال',{err:true})});
+});
 $('btnChgPin').addEventListener('click',function(){
   var o=normPin($('oldPin').value), n=normPin($('newPin').value);
   if(o!==cfg.pin){toast('الرقم الحالي غير صحيح',{err:true});return}
