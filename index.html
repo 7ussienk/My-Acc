@@ -231,8 +231,13 @@ dialog h2{margin:0 0 8px;font-size:17px}
     <div class="chips" id="catChips"></div>
     <label class="l">الغرض</label>
     <div class="chips" id="purpChips"></div>
-    <div class="hintline hidden" id="claimHint">يُخصم من حسابك، لكنه ما يدخل مصروفك الشهري ولا الحد. يُسجَّل «مستحقًا لك عند الشركة» لين ترجعه.</div>
-    <label class="l">من أي حساب؟</label>
+    <div class="hintline hidden" id="claimHint">يُخصم من حسابك، لكنه ما يدخل مصروفك الشهري ولا الحد. يُسجَّل «مستحقًا لك» عند الجهة اللي تختارها (الشركة أو شخص) لين ترجعه.</div>
+    <div class="hidden" id="partyBoxX">
+      <label class="l">عند مَن؟ (الجهة)</label>
+      <div class="chips" id="partyChipsX"></div>
+      <input id="xParty" maxlength="60" placeholder="أو اكتب اسم شخص/جهة جديدة" aria-label="اسم الجهة">
+    </div>
+        <label class="l">من أي حساب؟</label>
     <div class="chips" id="accChipsX"></div>
     <label class="l" for="xDesc" id="xDescLbl">على إيش صرفت؟ (اختياري)</label>
     <input id="xDesc" maxlength="120" placeholder="مثال: غداء">
@@ -296,7 +301,12 @@ dialog h2{margin:0 0 8px;font-size:17px}
   <form class="card" id="fi" autocomplete="off">
     <label class="l" style="margin-top:0">المصدر</label>
     <div class="chips" id="srcChips"></div>
-    <label class="l">دخل في أي حساب؟</label>
+    <div class="hidden" id="partyBoxI">
+      <label class="l">عند مَن؟ (الجهة)</label>
+      <div class="chips" id="partyChipsI"></div>
+      <input id="iParty" maxlength="60" placeholder="أو اكتب اسم شخص/جهة جديدة" aria-label="اسم الجهة">
+    </div>
+        <label class="l">دخل في أي حساب؟</label>
     <div class="chips" id="accChipsI"></div>
     <label class="l" for="iDesc">ملاحظة (اختياري)</label>
     <input id="iDesc" maxlength="120" placeholder="مثال: راتب أكتوبر">
@@ -359,7 +369,7 @@ dialog h2{margin:0 0 8px;font-size:17px}
       <button class="sub danger" style="width:100%;margin-top:14px" id="btnForget">فصل هذا الجهاز</button>
     </div>
   </details>
-  <div class="note">حساباتي · الإصدار 5.0 (يمني + مستحقات الشركة)<br><span id="dbg" dir="ltr"></span></div>
+  <div class="note">حساباتي · الإصدار 5.1 (مستحقات الشركة والأشخاص)<br><span id="dbg" dir="ltr"></span></div>
 </section>
 
 </div></div>
@@ -494,7 +504,7 @@ if(CFGURL) cfg.url = CFGURL;
 })();
 cfg.pin = normPin(cfg.pin);
 var NOPART = 'بدون تفصيل';
-var CLAIMP = 'على الشركة', REPAYS = '↩ استرداد من الشركة';
+var CLAIMP = '➕ مستحق لي', REPAYS = '↩ استرجاع مستحقات', DEFP = 'الشركة';
 var state = store.get('state',null);
 var view = null;                 // الحالة المعروضة = آخر حالة مزامنة + التسجيلات المعلّقة
 var queue = store.get('queue',[]);
@@ -502,7 +512,7 @@ var lockSec = Number(store.get('lockSec',30));
 var lastSync = store.get('lastSync',0);
 var online = null;               // null غير معروف | true | false
 var page = 'expense';
-var pick = {cat:'',meth:'',src:'',acc:'',purp:'',tf:'',tt:'',ex:'',cur:store.get('lastCur','YER')};
+var pick = {party:'',cat:'',meth:'',src:'',acc:'',purp:'',tf:'',tt:'',ex:'',cur:store.get('lastCur','YER')};
 var RATE = 411;
 var sending = false, toastTimer = null;
 var rep = {key:null, months:[], data:null};
@@ -698,7 +708,7 @@ function render(){
   chips('catChips',s.config.categories,'cat');
   chips('methChips',s.config.methods,'meth');
   chips('srcChips',(s.config.sources||[]).concat([REPAYS]),'src');
-  chips('exAcc',A,'ex'); renderDues(); updateConv();
+  chips('exAcc',A,'ex'); renderDues(); renderParties(); updateConv();
   $('recentX').innerHTML=(s.recent&&s.recent.length)?s.recent.map(function(r){
     return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.category)+'</b><span>'+esc(r.category)+(r.purpose?' · '+esc(r.purpose):'')+(r.account?' · '+esc(r.account):'')+(r.yer?' · '+fmt(r.yer)+' يمني':'')+' · '+(r.pending?'⏳ ينتظر الإرسال':esc(t12(r.date)))+'</span></div><div class="a">'+fmt(r.amount)+'</div></div>'}).join('')
     :'<div class="empty">ما فيه مصاريف مسجلة بعد.</div>';
@@ -757,11 +767,35 @@ document.addEventListener('click',function(e){
   pick[k]=(pick[k]===v&&k==='meth')?'':v;
   if(k==='acc') store.set('lastAcc',v);
   if(k==='cur'){store.set('lastCur',v);updateConv()}
-  if(k==='acc'||k==='purp') setTimeout(updateConv,0);
+  if(k==='acc'||k==='purp'||k==='src') setTimeout(updateConv,0);
+  if(k==='party'){$('xParty').value='';$('iParty').value=''}
   var AL=(state&&state.config.accounts)||[];
   if((k==='tf'||k==='tt')&&AL.length===2){var other=AL.filter(function(x){return x!==v})[0]; if(k==='tf')pick.tt=other; else pick.tf=other}
   resetPick();
 });
+/* ---------- الجهات (مستحقاتي) ---------- */
+function normDues(d){
+  d=d||{claimed:0,repaid:0,remaining:0};
+  if(!d.parties) d.parties=[{name:DEFP,claimed:d.claimed||0,repaid:d.repaid||0,remaining:d.remaining||0,open:d.open||[],repayments:d.repayments||[]}];
+  return d;
+}
+function partyNames(){
+  var n=[DEFP]; var d=view&&view.dues; if(d) normDues(d).parties.forEach(function(p){if(n.indexOf(p.name)<0) n.push(p.name)});
+  return n;
+}
+function renderParties(){
+  var L=partyNames(); if(!pick.party||(L.indexOf(pick.party)<0&&!$('xParty').value&&!$('iParty').value)) pick.party=store.get('lastParty',DEFP);
+  chips('partyChipsX',L,'party'); chips('partyChipsI',L,'party');
+}
+function updateParty(){
+  $('partyBoxX').classList.toggle('hidden',pick.purp!==CLAIMP);
+  $('partyBoxI').classList.toggle('hidden',pick.src!==REPAYS);
+}
+function curParty(){
+  var t=($('xParty').value||$('iParty').value).trim();
+  var v=t||pick.party||DEFP; store.set('lastParty',v); return v;
+}
+['xParty','iParty'].forEach(function(id){$(id).addEventListener('input',function(){pick.party=''; resetPick()})});
 function todayStr(){var n=new Date();return n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate())}
 $('btnNewItem').addEventListener('click',function(){$('newItemBox').classList.toggle('hidden');$('niName').focus()});
 $('btnCancelItem').addEventListener('click',function(){$('newItemBox').classList.add('hidden')});
@@ -781,7 +815,8 @@ function updateConv(){
       :('رصيد اليمني في '+esc(a.name)+': '+balHtml(bal)+' ر.ي');
   } else wb.textContent='';
   $('claimHint').classList.toggle('hidden',pick.purp!==CLAIMP);
-  $('xDescLbl').textContent=pick.purp===CLAIMP?'البيان (مطلوب) — مثال: علاج':'على إيش صرفت؟ (اختياري)';
+  updateParty();
+  $('xDescLbl').textContent=pick.purp===CLAIMP?'البيان (مطلوب) — مثال: علاج أو «أعطيت فلان»':'على إيش صرفت؟ (اختياري)';
 }
 $('xAmt').addEventListener('input',updateConv);
 
@@ -793,7 +828,8 @@ function effState(){
   if(!queue.length) return s;
   var rate=Number(s.config.rate)||411, ym=todayStr().slice(0,7), m=s.month, accs=s.accounts||[];
   var wal=Number(s.wallet)||0;
-  s.dues=s.dues||{claimed:0,repaid:0,remaining:0,open:[],recentClaims:[],repayments:[]};
+  s.dues=normDues(s.dues);
+  function party(n){n=n||DEFP; for(var i=0;i<s.dues.parties.length;i++) if(s.dues.parties[i].name===n) return s.dues.parties[i]; var np={name:n,claimed:0,repaid:0,remaining:0,open:[],repayments:[]}; s.dues.parties.push(np); return np}
   s.recentExchanges=s.recentExchanges||[];
   function find(n){for(var i=0;i<accs.length;i++) if(accs[i].name===n) return accs[i]; return null}
   function acc(n,d){var a=find(n); if(a){a.sar=r3((Number(a.sar)||0)+d); a.balance=r3(Number(a.balance)+d)} s.balance=r3(Number(s.balance)+d)}
@@ -832,18 +868,20 @@ function effState(){
       acc(p.account,-a); accY(p.account,y);
       s.recentExchanges=[{account:p.account,sar:a,yer:y,rate:r3(y/a),pending:true}].concat(s.recentExchanges);
     } else if(p.action==='claim'){
-      var cs=p.currency==='YER'?r3(a/rate):a;
+      var cs=p.currency==='YER'?r3(a/rate):a, pt=party(p.party);
       spend(p.account,cs,p.currency,a,p.date);
       s.dues.claimed=r3(s.dues.claimed+cs); s.dues.remaining=r3(s.dues.remaining+cs);
-      var it={desc:p.desc,amount:cs,left:cs,yer:p.currency==='YER'?a:0,account:p.account,pending:true};
-      s.dues.open=[it].concat(s.dues.open||[]); s.dues.recentClaims=[it].concat(s.dues.recentClaims||[]);
+      pt.claimed=r3(pt.claimed+cs); pt.remaining=r3(pt.remaining+cs);
+      pt.open=[{desc:p.desc,amount:cs,left:cs,yer:p.currency==='YER'?a:0,account:p.account,party:pt.name,pending:true}].concat(pt.open||[]);
     } else if(p.action==='repay'){
+      var pr=party(p.party);
       acc(p.account,a);
       s.dues.repaid=r3(s.dues.repaid+a); s.dues.remaining=r3(s.dues.remaining-a);
-      var pool=a, op=(s.dues.open||[]).slice().reverse();          // الأقدم أولًا
+      pr.repaid=r3(pr.repaid+a); pr.remaining=r3(pr.remaining-a);
+      var pool=a, op=(pr.open||[]).slice().reverse();          // الأقدم أولًا
       op.forEach(function(x){var u=Math.min(pool,x.left); x.left=r3(x.left-u); pool=r3(pool-u)});
-      s.dues.open=s.dues.open.filter(function(x){return x.left>0});
-      s.dues.repayments=[{desc:p.desc,amount:a,account:p.account,pending:true}].concat(s.dues.repayments||[]);
+      pr.open=pr.open.filter(function(x){return x.left>0});
+      pr.repayments=[{desc:p.desc,amount:a,account:p.account,party:pr.name,pending:true}].concat(pr.repayments||[]);
     } else if(p.action==='item'){
       var ex=false; s.config.items.forEach(function(it){if(it.name===p.name)ex=true});
       if(!ex) s.config.items.push({name:p.name,budget:(p.budget>0?p.budget:null),paid:0,parts:[],last:[]});
@@ -859,8 +897,8 @@ function qDesc(q){
   if(p.action==='transfer') return 'تحويل '+fmt(p.amount)+' من '+p.from+' إلى '+p.to;
   if(p.action==='item') return 'بند جديد: '+p.name;
   if(p.action==='exchange') return 'صرف '+fmt(p.amount)+' سعودي إلى يمني · '+p.account;
-  if(p.action==='claim') return 'دفعتُ عن الشركة '+fmt(p.amount)+y+' · '+(p.desc||'')+' · '+p.account;
-  if(p.action==='repay') return 'استرداد من الشركة '+fmt(p.amount)+' · '+p.account;
+  if(p.action==='claim') return 'مستحق لي عند '+(p.party||DEFP)+' '+fmt(p.amount)+y+' · '+(p.desc||'')+' · '+p.account;
+  if(p.action==='repay') return 'استرجاع من '+(p.party||DEFP)+' '+fmt(p.amount)+' · '+p.account;
   return 'عملية';
 }
 function renderPendList(){
@@ -920,10 +958,10 @@ function resetPick(){$$('.chip[data-k]').forEach(function(x){x.setAttribute('ari
 function clearForm(kind){
   if(kind==='transfer'){$('tfAmt').value='';$('tfNotes').value=''}
   if(kind==='exchange'){$('exSar').value='';$('exYer').value='';$('exYer').removeAttribute('data-manual');$('exHint').textContent=''}
-  if(kind==='expense'){$('xAmt').value='';updateConv();$('xDesc').value='';pick.cat='';pick.purp='';$('xDate').value='';$('xDate').classList.add('hidden')}
+  if(kind==='expense'){$('xAmt').value='';updateConv();$('xDesc').value='';$('xParty').value='';pick.cat='';pick.purp='';$('xDate').value='';$('xDate').classList.add('hidden')}
   if(kind==='payment'){$('pAmt').value='';$('pNotes').value='';$('pPart').value='';pick.meth='';$('pDate').value='';$('pDate').classList.add('hidden')}
-  if(kind==='income'){$('iAmt').value='';$('iDesc').value='';pick.src='';$('iDate').value='';$('iDate').classList.add('hidden')}
-  resetPick();
+  if(kind==='income'){$('iAmt').value='';$('iDesc').value='';$('iParty').value='';pick.src='';$('iDate').value='';$('iDate').classList.add('hidden')}
+  resetPick(); updateParty();
 }
 function submitForm(kind,build,btn){
   if(!cfg.url||!cfg.pin){showSetup();return}
@@ -942,10 +980,10 @@ function submitForm(kind,build,btn){
 }
 $('fx').addEventListener('submit',function(e){e.preventDefault();
   submitForm('expense',function(){
-    var p=base('xAmt','xDate'); if(!pick.purp) throw new Error('اختر: لنفسي أو للبيت أو على الشركة'); if(!pick.acc) throw new Error('اختر الحساب');
+    var p=base('xAmt','xDate'); if(!pick.purp) throw new Error('اختر: لنفسي أو للبيت أو مستحق لي'); if(!pick.acc) throw new Error('اختر الحساب');
     if(pick.purp===CLAIMP){
       var d=$('xDesc').value.trim(); if(!d) throw new Error('اكتب البيان (مثلًا: علاج)');
-      p.action='claim';p.account=pick.acc;p.currency=pick.cur;p.desc=d;return p;
+      p.action='claim';p.account=pick.acc;p.currency=pick.cur;p.desc=d;p.party=curParty();return p;
     }
     if(!pick.cat) throw new Error('اختر التصنيف');
     p.action='expense';p.category=pick.cat;p.purpose=pick.purp;p.account=pick.acc;p.currency=pick.cur;p.desc=$('xDesc').value.trim();return p;
@@ -961,7 +999,7 @@ $('fp').addEventListener('submit',function(e){e.preventDefault();
 $('fi').addEventListener('submit',function(e){e.preventDefault();
   submitForm('income',function(){
     var p=base('iAmt','iDate'); if(!pick.src) throw new Error('اختر المصدر'); if(!pick.acc) throw new Error('اختر الحساب');
-    if(pick.src===REPAYS){p.action='repay';p.account=pick.acc;p.desc=$('iDesc').value.trim()||'استرداد من الشركة';return p}
+    if(pick.src===REPAYS){p.action='repay';p.account=pick.acc;p.party=curParty();p.desc=$('iDesc').value.trim()||('استرجاع من '+p.party);return p}
     p.action='income';p.source=pick.src;p.account=pick.acc;p.desc=$('iDesc').value.trim();return p;
   },e.target.querySelector('.primary'));
 });
@@ -1078,21 +1116,28 @@ $('exBtn').addEventListener('click',function(){
   },this);
 });
 
-/* ---------- مستحقات الشركة ---------- */
+/* ---------- مستحقاتي (الشركة + أشخاص) ---------- */
+function delBtn(o,lbl){return (o.pending||!o.row)?'':'<button class="x" aria-label="حذف" data-del="claim" data-row="'+o.row+'" data-ts="'+o.ts+'" data-lbl="'+esc(lbl)+'">✕</button>'}
+function duesHtml(d,withDel){
+  d=normDues(d);
+  var ps=d.parties.filter(function(p){return p.claimed||p.repaid});
+  var h='<div class="dues-big"><span style="color:var(--mute);font-size:13px">إجمالي المتبقي لك (ريال)</span>'+balHtml(d.remaining)+'</div>';
+  ps.forEach(function(p){
+    h+='<div class="sum-top" style="margin-top:12px"><span class="sum-month">'+esc(p.name)+'</span><span class="badge '+(p.remaining>0?'warn':'ok')+'">'+(p.remaining>0?'باقي '+fmt(p.remaining):'مسدَّدة')+'</span></div>';
+    h+='<div class="sum-row"><span>دفعتُ عنهم <b>'+fmt(p.claimed)+'</b></span><span>استرجعتُ <b>'+fmt(p.repaid)+'</b></span></div>';
+    if((p.open||[]).length) h+='<div class="parts">'+p.open.map(function(o){
+      return '<div class="part"><span>'+esc(o.desc||'')+(o.yer?' · '+fmt(o.yer)+' يمني':'')+(o.pending?' · ⏳':'')+(o.left<o.amount?' · باقي '+fmt(o.left):'')+'</span><b>'+fmt(o.amount)+'</b>'+(withDel?delBtn(o,(o.desc||'')+' — '+fmt(o.amount)):'')+'</div>'}).join('')+'</div>';
+    if(withDel&&(p.repayments||[]).length) h+='<div class="sm2" style="margin-top:6px">آخر ما استرجعته من '+esc(p.name)+'</div><div class="parts">'+p.repayments.map(function(o){
+      return '<div class="part"><span>'+esc(o.desc||'استرجاع')+' · '+esc(o.account||'')+(o.pending?' · ⏳':' · '+esc(t12(o.date)))+'</span><b>+'+fmt(o.amount)+'</b>'+delBtn(o,'استرجاع '+fmt(o.amount))+'</div>'}).join('')+'</div>';
+  });
+  return h;
+}
 function renderDues(){
   var d=view&&view.dues, el=$('duesCard'); if(!el) return;
-  if(!d||(!d.claimed&&!d.repaid)){el.classList.add('hidden');return}
+  if(!d||(!d.claimed&&!d.repaid&&!(d.parties||[]).some(function(p){return p.claimed||p.repaid}))){el.classList.add('hidden');return}
   el.classList.remove('hidden');
-  var h='<div class="sum-top"><span class="sum-month">مستحقاتك عند الشركة</span><span class="badge '+(d.remaining>0?'warn':'ok')+'">'+(d.remaining>0?'باقي لك':'مسدَّدة')+'</span></div>';
-  h+='<div class="dues-big"><span style="color:var(--mute);font-size:13px">المتبقي (ريال)</span>'+balHtml(d.remaining)+'</div>';
-  h+='<div class="sum-row"><span>دفعتُ عنهم <b>'+fmt(d.claimed)+'</b></span><span>استرجعتُ <b>'+fmt(d.repaid)+'</b></span></div>';
-  if((d.open||[]).length) h+='<div class="parts">'+d.open.map(function(o){
-    return '<div class="part"><span>'+esc(o.desc||'')+(o.yer?' · '+fmt(o.yer)+' يمني':'')+(o.pending?' · ⏳':'')+(o.left<o.amount?' · باقي '+fmt(o.left):'')+'</span><b>'+fmt(o.amount)+'</b>'+
-      (o.pending||!o.row?'':'<button class="x" aria-label="حذف" data-del="claim" data-row="'+o.row+'" data-ts="'+o.ts+'" data-lbl="'+esc((o.desc||'')+' — '+fmt(o.amount))+'">✕</button>')+'</div>'}).join('')+'</div>';
-  if((d.repayments||[]).length) h+='<div class="sm2" style="margin-top:8px">آخر ما استرجعته</div><div class="parts">'+d.repayments.map(function(o){
-    return '<div class="part"><span>'+esc(o.desc||'استرداد')+' · '+esc(o.account||'')+(o.pending?' · ⏳':' · '+esc(t12(o.date)))+'</span><b>+'+fmt(o.amount)+'</b>'+
-      (o.pending||!o.row?'':'<button class="x" aria-label="حذف" data-del="claim" data-row="'+o.row+'" data-ts="'+o.ts+'" data-lbl="'+esc('استرداد '+fmt(o.amount))+'">✕</button>')+'</div>'}).join('')+'</div>';
-  el.innerHTML=h;
+  d=normDues(d);
+  el.innerHTML='<div class="sum-top"><span class="sum-month">مستحقاتي عند الآخرين</span><span class="badge '+(d.remaining>0?'warn':'ok')+'">'+(d.remaining>0?'باقي لك':'مسدَّدة')+'</span></div>'+duesHtml(d,true);
 }
 
 /* ================= التقرير ================= */
@@ -1168,15 +1213,13 @@ function drawReport(r,fromCache){
   h+='</section>';
   // القوائم
   if(r.dues&&(r.dues.claimed||r.dues.repaid)){
-    h+='<section class="card"><h2 class="t">مستحقاتك عند الشركة</h2><div class="dues-big"><span style="color:var(--mute);font-size:13px">المتبقي</span>'+balHtml(r.dues.remaining)+'</div>'+
-      '<div class="sum-row"><span>دفعتُ عنهم <b>'+fmt(r.dues.claimed)+'</b></span><span>استرجعتُ <b>'+fmt(r.dues.repaid)+'</b></span></div>'+
-      ((r.dues.open||[]).length?'<div class="parts">'+r.dues.open.map(function(o){return '<div class="part"><span>'+esc(o.desc||'')+(o.left<o.amount?' · باقي '+fmt(o.left):'')+'</span><b>'+fmt(o.amount)+'</b></div>'}).join('')+'</div>':'')+'</section>';
+    h+='<section class="card"><h2 class="t">مستحقاتي عند الآخرين</h2>'+duesHtml(r.dues,false)+'</section>';
   }
   h+=listSec('المصاريف',r.expenses,'expense',function(o){return {t:o.desc||o.category,s:o.category+(o.purpose?' · '+o.purpose:'')+(o.account?' · '+o.account:'')+(o.yer?' · '+fmt(o.yer)+' يمني':'')+' · '+t12(o.date),a:fmt(o.amount),c:''}});
   h+=listSec('الدفعات',r.payments,'payment',function(o){return {t:o.item+(o.part?' — '+o.part:''),s:(o.method?o.method+' · ':'')+(o.account?o.account+' · ':'')+(o.notes?o.notes+' · ':'')+t12(o.date),a:fmt(o.amount),c:''}});
   h+=listSec('المداخيل',r.incomes,'income',function(o){return {t:o.desc||o.source,s:o.source+(o.account?' · '+o.account:'')+' · '+t12(o.date),a:'+'+fmt(o.amount),c:'pos'}});
   h+=listSec('الصرف (سعودي ← يمني)',r.exchanges||[],'exchange',function(o){return {t:o.account+': '+fmt(o.sar)+' ر.س ← '+fmt(o.yer)+' ر.ي',s:'سعر '+fmt(o.rate)+' · '+t12(o.date),a:fmt(o.sar),c:''}});
-  h+=listSec('مستحقات الشركة',r.claims||[],'claim',function(o){return {t:(o.type==='claim'?'دفعتُ عنهم: ':'استرجعتُ: ')+(o.desc||''),s:(o.account||'')+(o.yer?' · '+fmt(o.yer)+' يمني':'')+' · '+t12(o.date),a:(o.type==='claim'?'':'+')+fmt(o.amount),c:o.type==='claim'?'':'pos'}});
+  h+=listSec('المستحقات (دفعت عن غيري / استرجعت)',r.claims||[],'claim',function(o){return {t:(o.type==='claim'?'دفعتُ عن ':'استرجعتُ من ')+(o.party||DEFP)+': '+(o.desc||''),s:(o.account||'')+(o.yer?' · '+fmt(o.yer)+' يمني':'')+' · '+t12(o.date),a:(o.type==='claim'?'':'+')+fmt(o.amount),c:o.type==='claim'?'':'pos'}});
   h+=listSec('التحويلات',r.transfers||[],'transfer',function(o){return {t:'من '+o.from+' إلى '+o.to,s:(o.notes?o.notes+' · ':'')+t12(o.date),a:fmt(o.amount),c:''}});
   // كل الأشهر
   h+='<section class="card"><h2 class="t">كل الأشهر</h2><div class="tblw"><table><thead><tr><th>الشهر</th><th>الدخل</th><th>شهري</th><th>بنود</th><th>الصافي</th></tr></thead><tbody>'+
