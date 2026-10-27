@@ -224,6 +224,7 @@ dialog h2{margin:0 0 8px;font-size:17px}
     <div class="sum-top"><span class="sum-month" id="sMonth">—</span><span class="badge" id="sBadge">—</span></div>
     <div class="big"><span id="sSpent">0</span> <small>من <span id="sLimit">0</span> ريال</small></div>
     <div class="bar" id="sBar"><i></i></div>
+    <div class="hintline hidden" id="sNote" style="margin-top:8px"></div>
     <div class="sum-row"><span>المتبقي <b id="sLeft">0</b></span><span>عدد المصاريف <b id="sCount">0</b></span></div>
   </section>
   <form class="card" id="fx" autocomplete="off">
@@ -369,7 +370,7 @@ dialog h2{margin:0 0 8px;font-size:17px}
       <button class="sub danger" style="width:100%;margin-top:14px" id="btnForget">فصل هذا الجهاز</button>
     </div>
   </details>
-  <div class="note">حساباتي · الإصدار 5.1 (مستحقات الشركة والأشخاص)<br><span id="dbg" dir="ltr"></span></div>
+  <div class="note">حساباتي · الإصدار 5.2 (اليمني خارج الحد + مستحقات الأشخاص)<br><span id="dbg" dir="ltr"></span></div>
 </section>
 
 </div></div>
@@ -698,6 +699,8 @@ function render(){
   $('sBadge').textContent={bad:'تجاوزت الحد',warn:'قارب الحد',ok:'ضمن الحد','':'—'}[st];
   $('sBadge').className='badge '+st;
   $('sBar').className='bar '+st; $('sBar').firstElementChild.style.width=pct+'%';
+  var nt=[]; if(m.exchanged>0) nt.push('يشمل صرف عملة '+fmt(m.exchanged)+' ر.س'); if(m.yerPaid>0) nt.push('مصروف اليمني '+fmt(m.yerPaid)+' ر.س غير محسوب (انحسب عند الصرف)');
+  $('sNote').textContent=nt.join(' · '); $('sNote').classList.toggle('hidden',!nt.length);
   RATE=Number(s.config.rate)||411; updateConv();
   var A=s.config.accounts||[];
   if(!pick.acc||A.indexOf(pick.acc)<0){var la=store.get('lastAcc','');pick.acc=A.indexOf(la)>=0?la:(A[0]||'')}
@@ -710,7 +713,7 @@ function render(){
   chips('srcChips',(s.config.sources||[]).concat([REPAYS]),'src');
   chips('exAcc',A,'ex'); renderDues(); renderParties(); updateConv();
   $('recentX').innerHTML=(s.recent&&s.recent.length)?s.recent.map(function(r){
-    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.category)+'</b><span>'+esc(r.category)+(r.purpose?' · '+esc(r.purpose):'')+(r.account?' · '+esc(r.account):'')+(r.yer?' · '+fmt(r.yer)+' يمني':'')+' · '+(r.pending?'⏳ ينتظر الإرسال':esc(t12(r.date)))+'</span></div><div class="a">'+fmt(r.amount)+'</div></div>'}).join('')
+    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.category)+'</b><span>'+esc(r.category)+(r.purpose?' · '+esc(r.purpose):'')+(r.account?' · '+esc(r.account):'')+(r.yer?' · '+fmt(r.yer)+' يمني':'')+(r.w?' (من محفظة اليمني)':'')+' · '+(r.pending?'⏳ ينتظر الإرسال':esc(t12(r.date)))+'</span></div><div class="a">'+fmt(r.amount)+'</div></div>'}).join('')
     :'<div class="empty">ما فيه مصاريف مسجلة بعد.</div>';
   $('iMonth').textContent=m.label; $('iTotal').textContent=fmt(m.income||0);
   $('recentI').innerHTML=(s.recentIncome&&s.recentIncome.length)?s.recentIncome.map(function(r){
@@ -843,9 +846,10 @@ function effState(){
     var p=q.p||{}, a=Number(p.amount)||0, inM=!p.date||String(p.date).slice(0,7)===ym, dl=p.date||todayStr();
     if(p.action==='expense'){
       var sar=p.currency==='YER'?r3(a/rate):a;
+      var wy=p.currency==='YER'&&wal&&!p_dateBefore(dl,wal);       // من محفظة اليمني: ما يُحسب على الحد (انحسب عند الصرف)
       spend(p.account,sar,p.currency,a,p.date);
-      if(inM){m.spent=r3(m.spent+sar);m.remaining=r3(m.remaining-sar);m.count=(m.count||0)+1}
-      s.recent=[{desc:p.desc,category:p.category,purpose:p.purpose,account:p.account,amount:sar,yer:p.currency==='YER'?a:0,date:dl,pending:true}].concat(s.recent||[]);
+      if(inM){ if(wy){m.yerPaid=r3((m.yerPaid||0)+sar)} else {m.spent=r3(m.spent+sar);m.remaining=r3(m.remaining-sar)} m.count=(m.count||0)+1 }
+      s.recent=[{desc:p.desc,category:p.category,purpose:p.purpose,account:p.account,amount:sar,yer:p.currency==='YER'?a:0,w:wy,date:dl,pending:true}].concat(s.recent||[]);
     } else if(p.action==='payment'){
       acc(p.account,-a);
       (s.config.items||[]).forEach(function(it){
@@ -866,6 +870,7 @@ function effState(){
     } else if(p.action==='exchange'){
       var y=p.yer>0?Math.round(p.yer):Math.round(a*rate);
       acc(p.account,-a); accY(p.account,y);
+      m.spent=r3(m.spent+a); m.remaining=r3(m.remaining-a); m.exchanged=r3((m.exchanged||0)+a);   // الصرف يُحسب على الحد الشهري
       s.recentExchanges=[{account:p.account,sar:a,yer:y,rate:r3(y/a),pending:true}].concat(s.recentExchanges);
     } else if(p.action==='claim'){
       var cs=p.currency==='YER'?r3(a/rate):a, pt=party(p.party);
@@ -1189,7 +1194,8 @@ function drawReport(r,fromCache){
   h+='<section class="card"><div class="sum-top"><span class="sum-month">حد المصروف الشهري</span><span class="badge '+L.status+'">'+({bad:'تجاوزت الحد',warn:'قارب الحد',ok:'ضمن الحد','':'—'}[L.status])+'</span></div>'+
     '<div class="big">'+fmt(L.spent)+' <small>من '+fmt(L.amount)+' ريال</small></div>'+
     '<div class="bar '+L.status+'"><i style="width:'+Math.min(100,L.pct)+'%"></i></div>'+
-    '<div class="sum-row"><span>المتبقي <b>'+fmt(L.remaining)+'</b></span><span>'+L.count+' عملية</span></div></section>';
+    '<div class="sum-row"><span>المتبقي <b>'+fmt(L.remaining)+'</b></span><span>'+L.count+' عملية</span></div>'+
+    ((L.exchanged>0||L.yerPaid>0)?'<div class="hintline" style="margin-top:8px">'+(L.exchanged>0?'يشمل صرف عملة '+fmt(L.exchanged)+' ر.س. ':'')+(L.yerPaid>0?'مصروف اليمني من المحفظة ('+fmt(L.yerPaid)+' ر.س) غير محسوب هنا لأنه انحسب عند الصرف.':'')+'</div>':'')+'</section>';
   // تصنيفات
   h+='<section class="card"><h2 class="t">المصاريف حسب التصنيف</h2>';
   if(r.categories.length){var mx=r.categories[0].amount||1;
@@ -1215,7 +1221,7 @@ function drawReport(r,fromCache){
   if(r.dues&&(r.dues.claimed||r.dues.repaid)){
     h+='<section class="card"><h2 class="t">مستحقاتي عند الآخرين</h2>'+duesHtml(r.dues,false)+'</section>';
   }
-  h+=listSec('المصاريف',r.expenses,'expense',function(o){return {t:o.desc||o.category,s:o.category+(o.purpose?' · '+o.purpose:'')+(o.account?' · '+o.account:'')+(o.yer?' · '+fmt(o.yer)+' يمني':'')+' · '+t12(o.date),a:fmt(o.amount),c:''}});
+  h+=listSec('المصاريف',r.expenses,'expense',function(o){return {t:o.desc||o.category,s:o.category+(o.purpose?' · '+o.purpose:'')+(o.account?' · '+o.account:'')+(o.yer?' · '+fmt(o.yer)+' يمني':'')+(o.w?' (من محفظة اليمني، غير محسوب على الحد)':'')+' · '+t12(o.date),a:fmt(o.amount),c:''}});
   h+=listSec('الدفعات',r.payments,'payment',function(o){return {t:o.item+(o.part?' — '+o.part:''),s:(o.method?o.method+' · ':'')+(o.account?o.account+' · ':'')+(o.notes?o.notes+' · ':'')+t12(o.date),a:fmt(o.amount),c:''}});
   h+=listSec('المداخيل',r.incomes,'income',function(o){return {t:o.desc||o.source,s:o.source+(o.account?' · '+o.account:'')+' · '+t12(o.date),a:'+'+fmt(o.amount),c:'pos'}});
   h+=listSec('الصرف (سعودي ← يمني)',r.exchanges||[],'exchange',function(o){return {t:o.account+': '+fmt(o.sar)+' ر.س ← '+fmt(o.yer)+' ر.ي',s:'سعر '+fmt(o.rate)+' · '+t12(o.date),a:fmt(o.sar),c:''}});
