@@ -211,51 +211,40 @@ dialog h2{margin:0 0 8px;font-size:17px}
 <div id="app">
 <header><div class="hin">
   <h1>حساباتي</h1>
-  <div class="hbw"><button class="hbal" id="hBalBtn" aria-label="الحسابات والتحويل">الرصيد <b id="hBal" class="bal" data-v="—">*****</b> <span class="sw">⇄</span></button><button class="eye" id="hEye" type="button" aria-label="إظهار الرصيد"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+  <div class="hbw"><button class="eye" id="hSet" type="button" aria-label="الإعدادات"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button><button class="hbal" id="hBalBtn" aria-label="الحسابات والتحويل">الرصيد <b id="hBal" class="bal" data-v="—">*****</b> <span class="sw">⇄</span></button><button class="eye" id="hEye" type="button" aria-label="إظهار الرصيد"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
 </div></header>
 
 <div id="scroll"><div class="wrap">
 
 <div class="pending" id="pending"><span id="pendingTxt"></span><span style="display:flex;gap:6px"><button class="sub" id="btnPendList">عرض</button><button class="sub" id="btnRetry">أرسل</button></span></div>
 
-<!-- ============ مصروف ============ -->
-<section class="pg on" id="pg-expense">
+<!-- ============ الرئيسية ============ -->
+<section class="pg on" id="pg-home">
   <section class="card">
-    <div class="sum-top"><span class="sum-month" id="sMonth">—</span><span class="badge" id="sBadge">—</span></div>
-    <div class="big"><span id="sSpent">0</span> <small>من <span id="sLimit">0</span> ريال</small></div>
-    <div class="bar" id="sBar"><i></i></div>
-    <div class="hintline hidden" id="sNote" style="margin-top:8px"></div>
-    <div class="sum-row"><span>المتبقي <b id="sLeft">0</b></span><span>عدد المصاريف <b id="sCount">0</b></span></div>
+    <div class="sum-top"><span class="sum-month" id="hMonth">—</span><span class="badge" id="hNetB">—</span></div>
+    <div class="sm2" style="margin-top:2px">وين راحت فلوسي هذا الشهر</div>
+    <div class="big"><span id="hOut">0</span> <small>ريال</small></div>
+    <div id="hBreak"></div>
+    <div class="sum-row" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px"><span>الدخل <b id="hInc">0</b></span><span>استرجعت <b id="hRep">0</b></span><span>الصافي <b id="hNet">0</b></span></div>
   </section>
-  <form class="card" id="fx" autocomplete="off">
-    <label class="l">التصنيف</label>
-    <div class="chips" id="catChips"></div>
-    <label class="l">الغرض</label>
-    <div class="chips" id="purpChips"></div>
-    <div class="hintline hidden" id="claimHint">يُخصم من حسابك، لكنه ما يدخل مصروفك الشهري ولا الحد. يُسجَّل «مستحقًا لك» عند الجهة اللي تختارها (الشركة أو شخص) لين ترجعه.</div>
-    <div class="hidden" id="partyBoxX">
-      <label class="l">عند مَن؟ (الجهة)</label>
-      <div class="chips" id="partyChipsX"></div>
-      <input id="xParty" maxlength="60" placeholder="أو اكتب اسم شخص/جهة جديدة" aria-label="اسم الجهة">
-    </div>
-        <label class="l">من أي حساب؟</label>
-    <div class="chips" id="accChipsX"></div>
-    <label class="l" for="xDesc" id="xDescLbl">على إيش صرفت؟ (اختياري)</label>
-    <input id="xDesc" maxlength="120" placeholder="مثال: غداء">
-    <label class="l">العملة</label>
-    <div class="chips">
-      <button type="button" class="chip" data-k="cur" data-v="YER" aria-pressed="true">ريال يمني</button>
-      <button type="button" class="chip" data-k="cur" data-v="SAR" aria-pressed="false">ريال سعودي</button>
-    </div>
-    <label class="l" for="xAmt" id="xAmtLbl">المبلغ (ريال يمني)</label>
-    <input id="xAmt" class="amount" inputmode="decimal" placeholder="0" aria-label="المبلغ">
-    <div class="sm2" id="xConv" style="text-align:center;min-height:20px;margin-top:6px;font-size:14px;font-weight:700;color:var(--teal)"></div>
-    <div class="sm2" id="xYerBal" style="text-align:center;margin-top:2px;font-size:13px"></div>
-    <button type="button" class="link" data-date="xDate">📅 تاريخ آخر (غير اليوم)</button>
-    <input id="xDate" type="date" class="hidden">
-    <button class="primary" type="submit">تسجيل المصروف</button>
+  <section class="card"><h2 class="t">حساباتي</h2><div id="homeAcc"></div>
+    <button class="sub" style="margin-top:12px;width:100%" id="btnAccOpen2">تحويل بين الحسابات / ضبط الرصيد ⇄</button></section>
+  <section class="card"><h2 class="t">دفعات البنود هذا الشهر</h2><div id="homeItems"></div></section>
+  <section class="card hidden" id="homeDues"></section>
+  <form class="card" id="fm" autocomplete="off">
+    <h2 class="t">المصروف الشهري</h2>
+    <div class="hintline">سجّل كم بتصرف هذا الشهر (مثلًا 600) مرة وحدة، وينخصم من الحساب.</div>
+    <label class="l">من أي حساب؟</label>
+    <div class="chips" id="accChipsM"></div>
+    <label class="l" for="mAmt">المبلغ (ريال)</label>
+    <input id="mAmt" class="amount" inputmode="decimal" placeholder="0" aria-label="المبلغ">
+    <label class="l" for="mDesc">ملاحظة (اختياري)</label>
+    <input id="mDesc" maxlength="120" placeholder="مثال: مصروف نوفمبر">
+    <button type="button" class="link" data-date="mDate">📅 تاريخ آخر (غير اليوم)</button>
+    <input id="mDate" type="date" class="hidden">
+    <button class="primary" type="submit">تسجيل المصروف الشهري</button>
   </form>
-  <section class="card"><h2 class="t">آخر المصاريف</h2><div id="recentX"></div></section>
+  <section class="card"><h2 class="t">آخر المصروف الشهري</h2><div id="recentM"></div></section>
 </section>
 
 <!-- ============ دفعة بند ============ -->
@@ -298,15 +287,9 @@ dialog h2{margin:0 0 8px;font-size:17px}
     <div class="sum-top"><span class="sum-month" id="iMonth">—</span><span class="badge">دخل الشهر</span></div>
     <div class="big"><span id="iTotal">0</span> <small>ريال</small></div>
   </section>
-  <section class="card hidden" id="duesCard"></section>
   <form class="card" id="fi" autocomplete="off">
     <label class="l" style="margin-top:0">المصدر</label>
     <div class="chips" id="srcChips"></div>
-    <div class="hidden" id="partyBoxI">
-      <label class="l">عند مَن؟ (الجهة)</label>
-      <div class="chips" id="partyChipsI"></div>
-      <input id="iParty" maxlength="60" placeholder="أو اكتب اسم شخص/جهة جديدة" aria-label="اسم الجهة">
-    </div>
         <label class="l">دخل في أي حساب؟</label>
     <div class="chips" id="accChipsI"></div>
     <label class="l" for="iDesc">ملاحظة (اختياري)</label>
@@ -318,6 +301,28 @@ dialog h2{margin:0 0 8px;font-size:17px}
     <button class="primary" type="submit">تسجيل الدخل</button>
   </form>
   <section class="card"><h2 class="t">آخر المداخيل</h2><div id="recentI"></div></section>
+</section>
+
+<!-- ============ مستحقات ============ -->
+<section class="pg" id="pg-dues">
+  <section class="card" id="duesCard"></section>
+  <form class="card" id="fd" autocomplete="off">
+    <label class="l" style="margin-top:0">إيش صار؟</label>
+    <div class="chips" id="dtChips"></div>
+    <div class="hintline" id="dHint" style="margin-top:8px"></div>
+    <label class="l">الجهة (عند مَن؟)</label>
+    <div class="chips" id="partyChipsD"></div>
+    <input id="dParty" maxlength="60" placeholder="أو اكتب اسم شخص/جهة جديدة" aria-label="اسم الجهة" style="margin-top:8px">
+    <label class="l" id="dAccLbl">من أي حساب؟</label>
+    <div class="chips" id="accChipsD"></div>
+    <label class="l" for="dDesc" id="dDescLbl">البيان</label>
+    <input id="dDesc" maxlength="120" placeholder="مثال: علاج، أعطيت فلان">
+    <label class="l" for="dAmt">المبلغ (ريال)</label>
+    <input id="dAmt" class="amount" inputmode="decimal" placeholder="0" aria-label="المبلغ">
+    <button type="button" class="link" data-date="dDate">📅 تاريخ آخر (غير اليوم)</button>
+    <input id="dDate" type="date" class="hidden">
+    <button class="primary" type="submit">تسجيل</button>
+  </form>
 </section>
 
 <!-- ============ تقرير ============ -->
@@ -344,11 +349,6 @@ dialog h2{margin:0 0 8px;font-size:17px}
     <button class="sub" style="margin-top:12px;width:100%" id="btnAccOpen">الحسابات والتحويل ⇄</button>
   </section>
   <section class="card">
-    <h2 class="t">سعر الصرف</h2>
-    <label class="l" for="rateIn" style="margin-top:0">كم ريال يمني = 1 ريال سعودي</label>
-    <div class="recbox" style="margin-top:0"><input id="rateIn" inputmode="decimal" class="ltr"><button class="sub" id="btnRate">حفظ</button></div>
-  </section>
-  <section class="card">
     <h2 class="t">القفل</h2>
     <label class="l" for="lockSel" style="margin-top:0">اطلب الرقم السري عند الرجوع للتطبيق بعد</label>
     <select id="lockSel">
@@ -370,18 +370,18 @@ dialog h2{margin:0 0 8px;font-size:17px}
       <button class="sub danger" style="width:100%;margin-top:14px" id="btnForget">فصل هذا الجهاز</button>
     </div>
   </details>
-  <div class="note">حساباتي · الإصدار 5.2 (اليمني خارج الحد + مستحقات الأشخاص)<br><span id="dbg" dir="ltr"></span></div>
+  <div class="note">حساباتي · الإصدار 6.0 (الدفعات + المستحقات + المصروف الشهري)<br><span id="dbg" dir="ltr"></span></div>
 </section>
 
 </div></div>
 
 <!-- ============ الشريط السفلي ============ -->
 <nav class="nav" aria-label="التنقل"><div class="nav-in"><span class="pill" id="pill"></span>
-  <button class="nb" data-page="expense" aria-current="page"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 7h15a3 3 0 0 1 3 3v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M3 7l12-3v3"/><circle cx="17" cy="14" r="1"/></svg></span><span class="lb">مصروف</span></button>
+  <button class="nb" data-page="home" aria-current="page"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span><span class="lb">الرئيسية</span></button>
   <button class="nb" data-page="payment"><span class="ic"><svg viewBox="0 0 24 24"><path d="M20 12l-8 8-9-9V3h8l9 9z"/><circle cx="7.5" cy="7.5" r="1"/></svg></span><span class="lb">دفعة</span></button>
   <button class="nb" data-page="income"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 4v12"/><path d="M6 11l6 6 6-6"/><path d="M5 21h14"/></svg></span><span class="lb">دخل</span></button>
+  <button class="nb" data-page="dues"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3 3 0 0 1 0 6M18 14c2 .8 3 2.8 3 6"/></svg></span><span class="lb">مستحقات</span></button>
   <button class="nb" data-page="report"><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></span><span class="lb">تقرير</span></button>
-  <button class="nb" data-page="settings"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></span><span class="lb">إعدادات</span></button>
 </div></nav>
 
 <div class="toast" id="toast" role="status"><span id="toastTxt"></span><button id="toastBtn" class="hidden"></button></div>
@@ -392,18 +392,7 @@ dialog h2{margin:0 0 8px;font-size:17px}
 <dialog id="accDlg">
   <div style="display:flex;justify-content:space-between;align-items:center"><h2 style="font-size:19px;color:var(--navy)">الحسابات</h2><button class="eye" id="dEye" type="button" aria-label="إظهار الأرصدة"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
   <div id="accList"></div>
-  <div class="tot"><span>الإجمالي (بالسعودي)</span><b id="accTotal" class="bal" data-v="0">*****</b></div>
-  <div class="sm2" id="accSub" style="text-align:center;margin-top:4px"></div>
-  <h2 style="margin-top:20px;font-size:17px;color:var(--navy)">صرف عملة (سعودي ← يمني)</h2>
-  <p style="color:var(--mute);font-size:13px;margin:4px 0 0">يخصم السعودي من الحساب ويضيف اليمني لنفس الحساب، وبعدها مصاريفك اليمنية تنخصم من رصيد اليمني.</p>
-  <label class="l" style="margin-top:8px">الحساب</label><div class="chips" id="exAcc"></div>
-  <label class="l" for="exSar">المبلغ بالسعودي</label>
-  <input id="exSar" class="amount" inputmode="decimal" placeholder="0">
-  <label class="l" for="exYer">يصير بالريال اليمني <span id="exHint" style="color:var(--mute);font-weight:500"></span></label>
-  <input id="exYer" inputmode="decimal" placeholder="يُحسب تلقائيًا حسب سعر الصرف">
-  <button class="primary" id="exBtn" style="margin-top:12px;min-height:52px;font-size:17px">صرف</button>
-  <h2 class="t" style="margin-top:12px">آخر عمليات الصرف</h2>
-  <div id="exRecent"></div>
+  <div class="tot"><span>الإجمالي</span><b id="accTotal" class="bal" data-v="0">*****</b></div>
   <h2 style="margin-top:20px;font-size:17px;color:var(--navy)">تحويل بين الحسابات</h2>
   <label class="l" style="margin-top:8px">من</label><div class="chips" id="tfFrom"></div>
   <label class="l">إلى</label><div class="chips" id="tfTo"></div>
@@ -505,16 +494,15 @@ if(CFGURL) cfg.url = CFGURL;
 })();
 cfg.pin = normPin(cfg.pin);
 var NOPART = 'بدون تفصيل';
-var CLAIMP = '➕ مستحق لي', REPAYS = '↩ استرجاع مستحقات', DEFP = 'الشركة';
+var DEFP = 'الشركة', DT_C = 'دفعت عن غيري', DT_R = 'استرجعت';
 var state = store.get('state',null);
 var view = null;                 // الحالة المعروضة = آخر حالة مزامنة + التسجيلات المعلّقة
 var queue = store.get('queue',[]);
 var lockSec = Number(store.get('lockSec',30));
 var lastSync = store.get('lastSync',0);
 var online = null;               // null غير معروف | true | false
-var page = 'expense';
-var pick = {party:'',cat:'',meth:'',src:'',acc:'',purp:'',tf:'',tt:'',ex:'',cur:store.get('lastCur','YER')};
-var RATE = 411;
+var page = 'home';
+var pick = {party:'',meth:'',src:'',acc:'',tf:'',tt:'',dt:DT_C};
 var sending = false, toastTimer = null;
 var rep = {key:null, months:[], data:null};
 
@@ -663,9 +651,10 @@ function fitViewport(){
 ['resize','orientationchange','pageshow'].forEach(function(ev){window.addEventListener(ev,function(){setTimeout(fitViewport,60)})});
 document.addEventListener('focusin',function(e){if(/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) document.body.classList.add('kb')});
 document.addEventListener('focusout',function(){setTimeout(function(){var a=document.activeElement;if(!a||!/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) document.body.classList.remove('kb')},120)});
-var ORDER=['expense','payment','income','report','settings'];
+var ORDER=['home','payment','income','dues','report','settings'];
 function placePill(anim){
   var pill=$('pill'), cur=document.querySelector('.nb[aria-current="page"] .ic'), nav=pill.parentNode;
+  pill.style.opacity=cur?'':'0';
   if(!cur) return;
   var a=cur.getBoundingClientRect(), n=nav.getBoundingClientRect();
   if(!a.width) return;
@@ -687,38 +676,27 @@ window.addEventListener('load',function(){placePill(false)});
 $$('.nb').forEach(function(b){b.addEventListener('click',function(){setPage(b.getAttribute('data-page'))})});
 
 /* ================= العرض ================= */
-function stOf(spent,limit){return limit>0?(spent>limit?'bad':(spent>=0.8*limit?'warn':'ok')):''}
 function render(){
   renderPending();
   var s=view=effState(); if(!s) return;
-  var m=s.month, pct=m.limit>0?Math.min(100,Math.round(m.spent/m.limit*100)):0;
+  var m=s.month||{};
   setBal('hBal',s.balance);
-  $('sMonth').textContent=m.label; $('sSpent').textContent=fmt(m.spent); $('sLimit').textContent=fmt(m.limit);
-  $('sLeft').textContent=fmt(m.remaining); $('sCount').textContent=m.count;
-  var st=stOf(m.spent,m.limit);
-  $('sBadge').textContent={bad:'تجاوزت الحد',warn:'قارب الحد',ok:'ضمن الحد','':'—'}[st];
-  $('sBadge').className='badge '+st;
-  $('sBar').className='bar '+st; $('sBar').firstElementChild.style.width=pct+'%';
-  var nt=[]; if(m.exchanged>0) nt.push('يشمل صرف عملة '+fmt(m.exchanged)+' ر.س'); if(m.yerPaid>0) nt.push('مصروف اليمني '+fmt(m.yerPaid)+' ر.س غير محسوب (انحسب عند الصرف)');
-  $('sNote').textContent=nt.join(' · '); $('sNote').classList.toggle('hidden',!nt.length);
-  RATE=Number(s.config.rate)||411; updateConv();
+  renderHome(s);
   var A=s.config.accounts||[];
   if(!pick.acc||A.indexOf(pick.acc)<0){var la=store.get('lastAcc','');pick.acc=A.indexOf(la)>=0?la:(A[0]||'')}
-  if(!pick.ex||A.indexOf(pick.ex)<0) pick.ex=pick.acc;
-  chips('accChipsX',A,'acc'); chips('accChipsP',A,'acc'); chips('accChipsI',A,'acc');
-  chips('purpChips',(s.config.purposes||[]).concat([CLAIMP]),'purp');
+  ['accChipsM','accChipsP','accChipsI','accChipsD'].forEach(function(id){chips(id,A,'acc')});
   renderAccounts();
-  chips('catChips',s.config.categories,'cat');
   chips('methChips',s.config.methods,'meth');
-  chips('srcChips',(s.config.sources||[]).concat([REPAYS]),'src');
-  chips('exAcc',A,'ex'); renderDues(); renderParties(); updateConv();
-  $('recentX').innerHTML=(s.recent&&s.recent.length)?s.recent.map(function(r){
-    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.category)+'</b><span>'+esc(r.category)+(r.purpose?' · '+esc(r.purpose):'')+(r.account?' · '+esc(r.account):'')+(r.yer?' · '+fmt(r.yer)+' يمني':'')+(r.w?' (من محفظة اليمني)':'')+' · '+(r.pending?'⏳ ينتظر الإرسال':esc(t12(r.date)))+'</span></div><div class="a">'+fmt(r.amount)+'</div></div>'}).join('')
-    :'<div class="empty">ما فيه مصاريف مسجلة بعد.</div>';
-  $('iMonth').textContent=m.label; $('iTotal').textContent=fmt(m.income||0);
+  chips('srcChips',s.config.sources||[],'src');
+  chips('dtChips',[DT_C,DT_R],'dt'); updateDt();
+  renderDues(); renderParties();
+  $('iMonth').textContent=m.label||''; $('iTotal').textContent=fmt(m.income||0);
   $('recentI').innerHTML=(s.recentIncome&&s.recentIncome.length)?s.recentIncome.map(function(r){
-    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.source)+'</b><span>'+esc(r.source)+(r.account?' · '+esc(r.account):'')+' · '+(r.pending?'⏳ ينتظر الإرسال':esc(t12(r.date)))+'</span></div><div class="a pos">+'+fmt(r.amount)+'</div></div>'}).join('')
+    return '<div class="rec"><div class="t"><b>'+esc(r.desc||r.source)+'</b><span>'+esc(r.source)+(r.account?' · '+esc(r.account):'')+' · '+(r.pending?'⏳ ينتظر الإرسال':esc(t12(r.date)))+'</span></div><div class="a pos">+'+fmt(r.amount)+'</div>'+delX('income',r,(r.desc||r.source)+' — '+fmt(r.amount))+'</div>'}).join('')
     :'<div class="empty">ما فيه مداخيل مسجلة بعد.</div>';
+  $('recentM').innerHTML=(s.recentMonthly&&s.recentMonthly.length)?s.recentMonthly.map(function(r){
+    return '<div class="rec"><div class="t"><b>'+esc(r.desc||'مصروف شهري')+'</b><span>'+esc(r.account||'')+' · '+(r.pending?'⏳ ينتظر الإرسال':esc(t12(r.date)))+'</span></div><div class="a">'+fmt(r.amount)+'</div>'+delX('monthly',r,'مصروف شهري — '+fmt(r.amount))+'</div>'}).join('')
+    :'<div class="empty">ما سجّلت مصروف شهري بعد.</div>';
   var sel=$('pItem'), cur=sel.value;
   sel.innerHTML=s.config.items.map(function(i){
     var left=(i.budget!=null)?(' — المتبقي '+fmt(i.budget-i.paid)):'';
@@ -726,6 +704,32 @@ function render(){
   if(cur) sel.value=cur;
   renderItemCard();
   renderSettings(); resetPick();
+}
+function delX(kind,o,lbl){return (o.pending||!o.row)?'':'<button class="x" aria-label="حذف" data-del="'+kind+'" data-row="'+o.row+'" data-ts="'+o.ts+'" data-lbl="'+esc(lbl)+'">✕</button>'}
+function barRow(name,v,max,sub){
+  return '<div class="cat"><div class="r"><span>'+esc(name)+(sub?' <span style="color:var(--mute);font-size:12px">'+esc(sub)+'</span>':'')+'</span><b>'+fmt(v)+'</b></div><div class="bar thin acc"><i style="width:'+(max>0?Math.round(v/max*100):0)+'%"></i></div></div>';
+}
+function renderHome(s){
+  var m=s.month||{};
+  $('hMonth').textContent=m.label||'—';
+  $('hOut').textContent=fmt(m.out||0);
+  var mx=Math.max(m.monthly||0,m.payments||0,m.claims||0);
+  $('hBreak').innerHTML=barRow('المصروف الشهري',m.monthly||0,mx)+barRow('دفعات البنود',m.payments||0,mx)+barRow('دفعت عن غيري (مستحقات)',m.claims||0,mx,'ترجع لك');
+  $('hInc').textContent=fmt(m.income||0); $('hRep').textContent=fmt(m.repaid||0);
+  var net=Number(m.net)||0; $('hNet').textContent=(net>0?'+':'')+fmt(net); $('hNet').className=net>=0?'pos':'neg';
+  $('hNetB').textContent=net>=0?'فائض':'عجز'; $('hNetB').className='badge '+(net>=0?'ok':'bad');
+  var A=s.accounts||[];
+  $('homeAcc').innerHTML=A.map(function(a){return '<div class="accrow"><div class="ar"><span>'+esc(a.name)+'</span><span>'+balHtml(a.balance)+' <small>ر.س</small></span></div></div>'}).join('')+
+    '<div class="tot"><span>الإجمالي</span>'+balHtml(s.balance)+'</div>';
+  var its=(s.config.items||[]).filter(function(i){return i.monthPaid>0}).sort(function(a,b){return b.monthPaid-a.monthPaid});
+  var im=its.length?its[0].monthPaid:0;
+  $('homeItems').innerHTML=its.length?its.map(function(i){return barRow(i.name,i.monthPaid,im,i.budget?('المدفوع '+fmt(i.paid)+' من '+fmt(i.budget)):'')}).join('')
+    :'<div class="empty">ما فيه دفعات هذا الشهر.</div>';
+  var d=normDues(s.dues), ps=d.parties.filter(function(p){return p.remaining>0}), hd=$('homeDues');
+  hd.classList.toggle('hidden',!(d.remaining>0));
+  if(d.remaining>0) hd.innerHTML='<div class="sum-top"><span class="sum-month">مستحقاتي عند الآخرين</span><b style="font-size:20px">'+fmt(d.remaining)+'</b></div>'+
+    '<div class="parts">'+ps.map(function(p){return '<div class="part"><span>'+esc(p.name)+'</span><b>'+fmt(p.remaining)+'</b></div>'}).join('')+'</div>'+
+    '<button class="link" type="button" data-go="dues" style="padding:6px 0">التفاصيل ←</button>';
 }
 function chips(id,list,key){
   $(id).innerHTML=(list||[]).map(function(v){return '<button type="button" class="chip" data-k="'+key+'" data-v="'+esc(v)+'" aria-pressed="'+(pick[key]===v)+'">'+esc(v)+'</button>'}).join('');
@@ -761,6 +765,7 @@ $('pItem').addEventListener('change',renderItemCard);
 
 document.addEventListener('click',function(e){
   var t=e.target; if(!t.closest) return;
+  var go=t.closest('[data-go]'); if(go){setPage(go.getAttribute('data-go'));return}
   var pc=t.closest('[data-part]');
   if(pc){$('pPart').value=pc.getAttribute('data-part');return}
   var db=t.closest('[data-date]');
@@ -769,9 +774,8 @@ document.addEventListener('click',function(e){
   var k=c.getAttribute('data-k'), v=c.getAttribute('data-v');
   pick[k]=(pick[k]===v&&k==='meth')?'':v;
   if(k==='acc') store.set('lastAcc',v);
-  if(k==='cur'){store.set('lastCur',v);updateConv()}
-  if(k==='acc'||k==='purp'||k==='src') setTimeout(updateConv,0);
-  if(k==='party'){$('xParty').value='';$('iParty').value=''}
+  if(k==='dt') setTimeout(updateDt,0);
+  if(k==='party') $('dParty').value='';
   var AL=(state&&state.config.accounts)||[];
   if((k==='tf'||k==='tt')&&AL.length===2){var other=AL.filter(function(x){return x!==v})[0]; if(k==='tf')pick.tt=other; else pick.tf=other}
   resetPick();
@@ -787,74 +791,49 @@ function partyNames(){
   return n;
 }
 function renderParties(){
-  var L=partyNames(); if(!pick.party||(L.indexOf(pick.party)<0&&!$('xParty').value&&!$('iParty').value)) pick.party=store.get('lastParty',DEFP);
-  chips('partyChipsX',L,'party'); chips('partyChipsI',L,'party');
+  var L=partyNames(); if(!pick.party||(L.indexOf(pick.party)<0&&!$('dParty').value)) pick.party=store.get('lastParty',DEFP);
+  chips('partyChipsD',L,'party');
 }
-function updateParty(){
-  $('partyBoxX').classList.toggle('hidden',pick.purp!==CLAIMP);
-  $('partyBoxI').classList.toggle('hidden',pick.src!==REPAYS);
+function updateDt(){
+  var c=pick.dt!==DT_R;
+  $('dHint').textContent=c?'دفعت أو أعطيت مبلغ عن شخص/جهة وبيرجع لك: ينخصم من حسابك ويُسجَّل مستحقًا لك.':'رجّع لك شخص/جهة جزء أو كل المستحق: ينضاف لحسابك وينقص من المستحق.';
+  $('dAccLbl').textContent=c?'من أي حساب؟':'دخل في أي حساب؟';
+  $('dDescLbl').textContent=c?'البيان (مطلوب)':'ملاحظة (اختياري)';
+  $('fd').querySelector('.primary').textContent=c?'تسجيل المستحق':'تسجيل الاسترجاع';
 }
 function curParty(){
-  var t=($('xParty').value||$('iParty').value).trim();
-  var v=t||pick.party||DEFP; store.set('lastParty',v); return v;
+  var v=$('dParty').value.trim()||pick.party||DEFP; store.set('lastParty',v); return v;
 }
-['xParty','iParty'].forEach(function(id){$(id).addEventListener('input',function(){pick.party=''; resetPick()})});
+$('dParty').addEventListener('input',function(){pick.party=''; resetPick()});
 function todayStr(){var n=new Date();return n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate())}
 $('btnNewItem').addEventListener('click',function(){$('newItemBox').classList.toggle('hidden');$('niName').focus()});
 $('btnCancelItem').addEventListener('click',function(){$('newItemBox').classList.add('hidden')});
-
-/* ---------- العملة ---------- */
-function updateConv(){
-  var yer=pick.cur==='YER';
-  $('xAmtLbl').textContent=yer?'المبلغ (ريال يمني)':'المبلغ (ريال سعودي)';
-  var raw=String($('xAmt').value).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace('،','.').replace(',','.');
-  var v=parseFloat(raw);
-  $('xConv').textContent=yer?(v>0?('≈ '+fmt(Math.round(v/RATE*1000)/1000)+' ريال سعودي  (الصرف '+RATE+')'):('يتحول تلقائيًا للسعودي (÷ '+RATE+')')):'';
-  var wb=$('xYerBal'), a=null;
-  if(view&&yer&&pick.acc) (view.accounts||[]).forEach(function(x){if(x.name===pick.acc)a=x});
-  if(a){
-    var bal=Number(a.yer)||0, short=v>0&&v>bal;
-    wb.innerHTML=short?('<span style="color:var(--red);font-weight:700">رصيد اليمني في '+esc(a.name)+' ما يكفي — صرّف من السعودي أولًا (زر الرصيد ← صرف عملة)</span>')
-      :('رصيد اليمني في '+esc(a.name)+': '+balHtml(bal)+' ر.ي');
-  } else wb.textContent='';
-  $('claimHint').classList.toggle('hidden',pick.purp!==CLAIMP);
-  updateParty();
-  $('xDescLbl').textContent=pick.purp===CLAIMP?'البيان (مطلوب) — مثال: علاج أو «أعطيت فلان»':'على إيش صرفت؟ (اختياري)';
-}
-$('xAmt').addEventListener('input',updateConv);
 
 /* ---------- الطابور (بدون نت) ---------- */
 function r3(x){return Math.round(x*1000)/1000}
 function effState(){
   if(!state) return null;
   var s=JSON.parse(JSON.stringify(state));
+  if(!state.v||state.v<6){s.month=s.month||{}; s.recentMonthly=s.recentMonthly||[]}
   if(!queue.length) return s;
-  var rate=Number(s.config.rate)||411, ym=todayStr().slice(0,7), m=s.month, accs=s.accounts||[];
-  var wal=Number(s.wallet)||0;
+  var ym=todayStr().slice(0,7), m=s.month, accs=s.accounts||[];
+  ['income','monthly','payments','claims','repaid','out'].forEach(function(k){m[k]=Number(m[k])||0});
   s.dues=normDues(s.dues);
   function party(n){n=n||DEFP; for(var i=0;i<s.dues.parties.length;i++) if(s.dues.parties[i].name===n) return s.dues.parties[i]; var np={name:n,claimed:0,repaid:0,remaining:0,open:[],repayments:[]}; s.dues.parties.push(np); return np}
-  s.recentExchanges=s.recentExchanges||[];
   function find(n){for(var i=0;i<accs.length;i++) if(accs[i].name===n) return accs[i]; return null}
-  function acc(n,d){var a=find(n); if(a){a.sar=r3((Number(a.sar)||0)+d); a.balance=r3(Number(a.balance)+d)} s.balance=r3(Number(s.balance)+d)}
-  function accY(n,y){var a=find(n); var v=y/rate; if(a){a.yer=Math.round((Number(a.yer)||0)+y); a.balance=r3(Number(a.balance)+v)} s.balance=r3(Number(s.balance)+v)}
-  function spend(n,amt,cur,orig,dl){            // مصروف: اليمني بعد بداية المحفظة من رصيد اليمني
-    var after=!p_dateBefore(dl,wal);
-    if(cur==='YER'&&wal&&after) accY(n,-orig); else acc(n,-amt);
-  }
-  function p_dateBefore(dl,w){return !!(w&&dl&&new Date(dl+'T23:59:59').getTime()<w)}
+  function acc(n,d){var a=find(n); if(a){a.balance=r3(Number(a.balance)+d)} s.balance=r3(Number(s.balance)+d)}
   queue.forEach(function(q){
     var p=q.p||{}, a=Number(p.amount)||0, inM=!p.date||String(p.date).slice(0,7)===ym, dl=p.date||todayStr();
-    if(p.action==='expense'){
-      var sar=p.currency==='YER'?r3(a/rate):a;
-      var wy=p.currency==='YER'&&wal&&!p_dateBefore(dl,wal);       // من محفظة اليمني: ما يُحسب على الحد (انحسب عند الصرف)
-      spend(p.account,sar,p.currency,a,p.date);
-      if(inM){ if(wy){m.yerPaid=r3((m.yerPaid||0)+sar)} else {m.spent=r3(m.spent+sar);m.remaining=r3(m.remaining-sar)} m.count=(m.count||0)+1 }
-      s.recent=[{desc:p.desc,category:p.category,purpose:p.purpose,account:p.account,amount:sar,yer:p.currency==='YER'?a:0,w:wy,date:dl,pending:true}].concat(s.recent||[]);
+    if(p.action==='monthly'){
+      acc(p.account,-a);
+      if(inM){m.monthly=r3(m.monthly+a);m.out=r3(m.out+a)}
+      s.recentMonthly=[{desc:p.desc,account:p.account,amount:a,date:dl,pending:true}].concat(s.recentMonthly||[]);
     } else if(p.action==='payment'){
       acc(p.account,-a);
+      if(inM){m.payments=r3(m.payments+a);m.out=r3(m.out+a)}
       (s.config.items||[]).forEach(function(it){
         if(it.name!==p.item) return;
-        it.paid=r3((Number(it.paid)||0)+a);
+        it.paid=r3((Number(it.paid)||0)+a); if(inM) it.monthPaid=r3((Number(it.monthPaid)||0)+a);
         var pn=p.part||NOPART, f=null;
         it.parts=it.parts||[]; it.parts.forEach(function(x){if(x.name===pn)f=x});
         if(f) f.amount=r3(f.amount+a); else it.parts.push({name:pn,amount:a});
@@ -862,25 +841,22 @@ function effState(){
       });
     } else if(p.action==='income'){
       acc(p.account,a);
-      if(inM) m.income=r3((Number(m.income)||0)+a);
+      if(inM) m.income=r3(m.income+a);
       s.recentIncome=[{desc:p.desc,source:p.source,account:p.account,amount:a,date:dl,pending:true}].concat(s.recentIncome||[]);
     } else if(p.action==='transfer'){
       acc(p.from,-a); acc(p.to,a);
       s.recentTransfers=[{from:p.from,to:p.to,amount:a,notes:p.notes,date:dl,pending:true}].concat(s.recentTransfers||[]);
-    } else if(p.action==='exchange'){
-      var y=p.yer>0?Math.round(p.yer):Math.round(a*rate);
-      acc(p.account,-a); accY(p.account,y);
-      m.spent=r3(m.spent+a); m.remaining=r3(m.remaining-a); m.exchanged=r3((m.exchanged||0)+a);   // الصرف يُحسب على الحد الشهري
-      s.recentExchanges=[{account:p.account,sar:a,yer:y,rate:r3(y/a),pending:true}].concat(s.recentExchanges);
     } else if(p.action==='claim'){
-      var cs=p.currency==='YER'?r3(a/rate):a, pt=party(p.party);
-      spend(p.account,cs,p.currency,a,p.date);
-      s.dues.claimed=r3(s.dues.claimed+cs); s.dues.remaining=r3(s.dues.remaining+cs);
-      pt.claimed=r3(pt.claimed+cs); pt.remaining=r3(pt.remaining+cs);
-      pt.open=[{desc:p.desc,amount:cs,left:cs,yer:p.currency==='YER'?a:0,account:p.account,party:pt.name,pending:true}].concat(pt.open||[]);
+      var pt=party(p.party);
+      acc(p.account,-a);
+      if(inM){m.claims=r3(m.claims+a);m.out=r3(m.out+a)}
+      s.dues.claimed=r3(s.dues.claimed+a); s.dues.remaining=r3(s.dues.remaining+a);
+      pt.claimed=r3(pt.claimed+a); pt.remaining=r3(pt.remaining+a);
+      pt.open=[{desc:p.desc,amount:a,left:a,account:p.account,party:pt.name,pending:true}].concat(pt.open||[]);
     } else if(p.action==='repay'){
       var pr=party(p.party);
       acc(p.account,a);
+      if(inM) m.repaid=r3(m.repaid+a);
       s.dues.repaid=r3(s.dues.repaid+a); s.dues.remaining=r3(s.dues.remaining-a);
       pr.repaid=r3(pr.repaid+a); pr.remaining=r3(pr.remaining-a);
       var pool=a, op=(pr.open||[]).slice().reverse();          // الأقدم أولًا
@@ -892,17 +868,17 @@ function effState(){
       if(!ex) s.config.items.push({name:p.name,budget:(p.budget>0?p.budget:null),paid:0,parts:[],last:[]});
     }
   });
+  m.net=r3(m.income+m.repaid-m.out);
   return s;
 }
 function qDesc(q){
-  var p=q.p||{}, y=p.currency==='YER'?' يمني':'';
-  if(p.action==='expense') return 'مصروف '+fmt(p.amount)+y+' · '+p.category+' · '+p.account;
+  var p=q.p||{};
+  if(p.action==='monthly') return 'مصروف شهري '+fmt(p.amount)+' · '+p.account;
   if(p.action==='payment') return 'دفعة '+fmt(p.amount)+' · '+p.item+(p.part?' ('+p.part+')':'')+' · '+p.account;
   if(p.action==='income') return 'دخل '+fmt(p.amount)+' · '+p.source+' · '+p.account;
   if(p.action==='transfer') return 'تحويل '+fmt(p.amount)+' من '+p.from+' إلى '+p.to;
   if(p.action==='item') return 'بند جديد: '+p.name;
-  if(p.action==='exchange') return 'صرف '+fmt(p.amount)+' سعودي إلى يمني · '+p.account;
-  if(p.action==='claim') return 'مستحق لي عند '+(p.party||DEFP)+' '+fmt(p.amount)+y+' · '+(p.desc||'')+' · '+p.account;
+  if(p.action==='claim') return 'مستحق لي عند '+(p.party||DEFP)+' '+fmt(p.amount)+' · '+(p.desc||'')+' · '+p.account;
   if(p.action==='repay') return 'استرجاع من '+(p.party||DEFP)+' '+fmt(p.amount)+' · '+p.account;
   return 'عملية';
 }
@@ -962,11 +938,11 @@ function base(amtId,dateId){
 function resetPick(){$$('.chip[data-k]').forEach(function(x){x.setAttribute('aria-pressed',String(pick[x.getAttribute('data-k')]===x.getAttribute('data-v')))})}
 function clearForm(kind){
   if(kind==='transfer'){$('tfAmt').value='';$('tfNotes').value=''}
-  if(kind==='exchange'){$('exSar').value='';$('exYer').value='';$('exYer').removeAttribute('data-manual');$('exHint').textContent=''}
-  if(kind==='expense'){$('xAmt').value='';updateConv();$('xDesc').value='';$('xParty').value='';pick.cat='';pick.purp='';$('xDate').value='';$('xDate').classList.add('hidden')}
+  if(kind==='monthly'){$('mAmt').value='';$('mDesc').value='';$('mDate').value='';$('mDate').classList.add('hidden')}
   if(kind==='payment'){$('pAmt').value='';$('pNotes').value='';$('pPart').value='';pick.meth='';$('pDate').value='';$('pDate').classList.add('hidden')}
-  if(kind==='income'){$('iAmt').value='';$('iDesc').value='';$('iParty').value='';pick.src='';$('iDate').value='';$('iDate').classList.add('hidden')}
-  resetPick(); updateParty();
+  if(kind==='income'){$('iAmt').value='';$('iDesc').value='';pick.src='';$('iDate').value='';$('iDate').classList.add('hidden')}
+  if(kind==='dues'){$('dAmt').value='';$('dDesc').value='';$('dParty').value='';$('dDate').value='';$('dDate').classList.add('hidden')}
+  resetPick();
 }
 function submitForm(kind,build,btn){
   if(!cfg.url||!cfg.pin){showSetup();return}
@@ -983,15 +959,10 @@ function submitForm(kind,build,btn){
     else toast('تعذّر التسجيل',{err:true});
   }).then(function(){btn.disabled=false});
 }
-$('fx').addEventListener('submit',function(e){e.preventDefault();
-  submitForm('expense',function(){
-    var p=base('xAmt','xDate'); if(!pick.purp) throw new Error('اختر: لنفسي أو للبيت أو مستحق لي'); if(!pick.acc) throw new Error('اختر الحساب');
-    if(pick.purp===CLAIMP){
-      var d=$('xDesc').value.trim(); if(!d) throw new Error('اكتب البيان (مثلًا: علاج)');
-      p.action='claim';p.account=pick.acc;p.currency=pick.cur;p.desc=d;p.party=curParty();return p;
-    }
-    if(!pick.cat) throw new Error('اختر التصنيف');
-    p.action='expense';p.category=pick.cat;p.purpose=pick.purp;p.account=pick.acc;p.currency=pick.cur;p.desc=$('xDesc').value.trim();return p;
+$('fm').addEventListener('submit',function(e){e.preventDefault();
+  submitForm('monthly',function(){
+    var p=base('mAmt','mDate'); if(!pick.acc) throw new Error('اختر الحساب');
+    p.action='monthly';p.account=pick.acc;p.desc=$('mDesc').value.trim();return p;
   },e.target.querySelector('.primary'));
 });
 $('fp').addEventListener('submit',function(e){e.preventDefault();
@@ -1004,8 +975,15 @@ $('fp').addEventListener('submit',function(e){e.preventDefault();
 $('fi').addEventListener('submit',function(e){e.preventDefault();
   submitForm('income',function(){
     var p=base('iAmt','iDate'); if(!pick.src) throw new Error('اختر المصدر'); if(!pick.acc) throw new Error('اختر الحساب');
-    if(pick.src===REPAYS){p.action='repay';p.account=pick.acc;p.party=curParty();p.desc=$('iDesc').value.trim()||('استرجاع من '+p.party);return p}
     p.action='income';p.source=pick.src;p.account=pick.acc;p.desc=$('iDesc').value.trim();return p;
+  },e.target.querySelector('.primary'));
+});
+$('fd').addEventListener('submit',function(e){e.preventDefault();
+  submitForm('dues',function(){
+    var p=base('dAmt','dDate'); if(!pick.acc) throw new Error('اختر الحساب');
+    var c=pick.dt!==DT_R, d=$('dDesc').value.trim();
+    if(c&&!d) throw new Error('اكتب البيان (مثلًا: علاج أو «أعطيت فلان»)');
+    p.action=c?'claim':'repay';p.account=pick.acc;p.party=curParty();p.desc=d||(c?'':'استرجاع من '+p.party);return p;
   },e.target.querySelector('.primary'));
 });
 function undoRow(sheet,row,ts){
@@ -1041,26 +1019,18 @@ function refresh(){
 /* ================= الحسابات والتحويل ================= */
 function renderAccounts(){
   var s=view; if(!s) return;
-  var A=s.accounts||[], rate=Number(s.config.rate)||411;
+  var A=s.accounts||[];
   $('accList').innerHTML=A.map(function(a,i){
-    return '<div class="accrow"><div class="ar"><span>'+esc(a.name)+'</span><span>'+balHtml(a.sar)+' <small>ر.س</small></span></div>'+
-      '<div class="sm2" style="display:flex;justify-content:space-between;font-size:14px;color:var(--ink)"><span>يمني</span><span>'+balHtml(a.yer||0)+' <small>ر.ي</small></span></div>'+
-      '<div style="display:flex;gap:14px"><button class="link" data-rec="'+i+'" data-cur="SAR" style="padding:4px 0">تعديل السعودي</button><button class="link" data-rec="'+i+'" data-cur="YER" style="padding:4px 0">تعديل اليمني</button></div>'+
-      '<div class="recbox hidden" id="rb'+i+'"><input id="ri'+i+'" inputmode="decimal" placeholder="الرصيد الفعلي"><button class="sub" data-save="'+esc(a.name)+'" data-i="'+i+'">حفظ</button></div></div>'}).join('');
+    return '<div class="accrow"><div class="ar"><span>'+esc(a.name)+'</span><span>'+balHtml(a.balance)+' <small>ر.س</small></span></div>'+
+      '<button class="link" data-rec="'+i+'" style="padding:4px 0">تعديل الرصيد</button>'+
+      '<div class="recbox hidden" id="rb'+i+'"><input id="ri'+i+'" inputmode="decimal" placeholder="الرصيد الفعلي في البنك"><button class="sub" data-save="'+esc(a.name)+'" data-i="'+i+'">حفظ</button></div></div>'}).join('');
   setBal('accTotal',s.balance);
-  var sT=0,yT=0; A.forEach(function(a){sT+=Number(a.sar)||0;yT+=Number(a.yer)||0});
-  $('accSub').innerHTML='سعودي '+balHtml(sT)+' + يمني '+balHtml(yT)+' ر.ي (يُحسب بسعر '+rate+')';
   chips('tfFrom',s.config.accounts||[],'tf'); chips('tfTo',s.config.accounts||[],'tt');
-  $('setAcc').innerHTML=A.map(function(a){return '<div class="accrow"><div class="ar"><span>'+esc(a.name)+'</span><span>'+balHtml(a.sar)+' <small>ر.س</small></span></div><div class="sm2">يمني: '+balHtml(a.yer||0)+' ر.ي</div></div>'}).join('')+
-    '<div class="tot"><span>الإجمالي (بالسعودي)</span>'+balHtml(s.balance)+'</div>';
+  $('setAcc').innerHTML=A.map(function(a){return '<div class="accrow"><div class="ar"><span>'+esc(a.name)+'</span><span>'+balHtml(a.balance)+' <small>ر.س</small></span></div></div>'}).join('')+
+    '<div class="tot"><span>الإجمالي</span>'+balHtml(s.balance)+'</div>';
   var tr=s.recentTransfers||[];
   $('tfRecent').innerHTML=tr.length?tr.map(function(o){
-    return '<div class="rec"><div class="t"><b>من '+esc(o.from)+' إلى '+esc(o.to)+'</b><span>'+esc(o.notes?o.notes+' · ':'')+(o.pending?'⏳ ينتظر الإرسال':esc(t12(o.date)))+'</span></div><div class="a">'+fmt(o.amount)+'</div>'+(o.pending?'':
-      '<button class="x" aria-label="حذف" data-del="transfer" data-row="'+o.row+'" data-ts="'+o.ts+'" data-lbl="'+esc('تحويل '+fmt(o.amount))+'">✕</button>')+'</div>'}).join(''):'<div class="empty">ما فيه تحويلات.</div>';
-  var ex=s.recentExchanges||[];
-  $('exRecent').innerHTML=ex.length?ex.map(function(o){
-    return '<div class="rec"><div class="t"><b>'+esc(o.account)+': '+fmt(o.sar)+' ر.س ← '+fmt(o.yer)+' ر.ي</b><span>سعر '+fmt(o.rate)+' · '+(o.pending?'⏳ ينتظر الإرسال':esc(t12(o.date)))+'</span></div>'+(o.pending?'':
-      '<button class="x" aria-label="حذف" data-del="exchange" data-row="'+o.row+'" data-ts="'+o.ts+'" data-lbl="'+esc('صرف '+fmt(o.sar)+' ر.س')+'">✕</button>')+'</div>'}).join(''):'<div class="empty">ما فيه عمليات صرف.</div>';
+    return '<div class="rec"><div class="t"><b>من '+esc(o.from)+' إلى '+esc(o.to)+'</b><span>'+esc(o.notes?o.notes+' · ':'')+(o.pending?'⏳ ينتظر الإرسال':esc(t12(o.date)))+'</span></div><div class="a">'+fmt(o.amount)+'</div>'+delX('transfer',o,'تحويل '+fmt(o.amount))+'</div>'}).join(''):'<div class="empty">ما فيه تحويلات.</div>';
 }
 function openAcc(){ $('accMsg').textContent=''; var d=$('accDlg'); if(d.showModal) d.showModal(); else d.setAttribute('open',''); }
 function closeAcc(){ var d=$('accDlg'); if(d.close) d.close(); else d.removeAttribute('open') }
@@ -1069,6 +1039,8 @@ $('hEye').addEventListener('click',function(){toggleBal()});
 $('dEye').addEventListener('click',function(){toggleBal()});
 renderBal();
 $('btnAccOpen').addEventListener('click',openAcc);
+$('btnAccOpen2').addEventListener('click',openAcc);
+$('hSet').addEventListener('click',function(){setPage('settings')});
 $('accClose').addEventListener('click',closeAcc);
 $('tfBtn').addEventListener('click',function(){
   submitForm('transfer',function(){
@@ -1082,43 +1054,20 @@ document.addEventListener('click',function(e){
   var t=e.target; if(!t.closest) return;
   var r=t.closest('[data-rec]');
   if(r){
-    var ri=r.getAttribute('data-rec'), cur=r.getAttribute('data-cur')||'SAR', b=$('rb'+ri);
-    var same=b.getAttribute('data-cur')===cur;
-    if(!b.classList.contains('hidden')&&same){b.classList.add('hidden');return}
-    b.setAttribute('data-cur',cur); b.classList.remove('hidden');
-    $('ri'+ri).placeholder=cur==='YER'?'الرصيد اليمني الفعلي (ريال يمني)':'الرصيد السعودي الفعلي (ريال سعودي)';
-    $('ri'+ri).value=''; $('ri'+ri).focus(); return;
+    var ri=r.getAttribute('data-rec'), b=$('rb'+ri);
+    if(!b.classList.contains('hidden')){b.classList.add('hidden');return}
+    b.classList.remove('hidden'); $('ri'+ri).value=''; $('ri'+ri).focus(); return;
   }
   var sv=t.closest('[data-save]');
   if(sv){
     var name=sv.getAttribute('data-save'), i=sv.getAttribute('data-i'), raw=String($('ri'+i).value).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace('،','.').replace(',','.');
     var v=parseFloat(raw); if(!isFinite(v)){toast('اكتب الرصيد',{err:true});return}
     sv.disabled=true;
-    var rcur=$('rb'+i).getAttribute('data-cur')||'SAR';
-    api('POST',{action:'reconcile',account:name,balance:v,currency:rcur}).then(function(x){
-      if(x&&x.ok){state=x.state;store.set('state',state);markSync(true);render();toast('تم ضبط رصيد '+name+(rcur==='YER'?' اليمني':' السعودي')+' ✓')}
+    api('POST',{action:'reconcile',account:name,balance:v}).then(function(x){
+      if(x&&x.ok){state=x.state;store.set('state',state);markSync(true);render();toast('تم ضبط رصيد '+name+' ✓')}
       else toast((x&&x.error)||'تعذّر',{err:true,ms:6000});
     }).catch(function(){toast('تحتاج اتصال لضبط الرصيد',{err:true})}).then(function(){sv.disabled=false});
   }
-});
-
-/* ---------- صرف العملة ---------- */
-function parseNum(v){return parseFloat(String(v).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace('،','.').replace(',','.'))}
-function exSync(){
-  var sar=parseNum($('exSar').value), yel=$('exYer');
-  if(!yel.getAttribute('data-manual')) yel.value=sar>0?String(Math.round(sar*RATE)):'';
-  $('exHint').textContent=sar>0?'(سعر '+RATE+')':'';
-}
-$('exSar').addEventListener('input',exSync);
-$('exYer').addEventListener('input',function(){this.setAttribute('data-manual',this.value?'1':'')});
-$('exBtn').addEventListener('click',function(){
-  submitForm('exchange',function(){
-    if(!pick.ex) throw new Error('اختر الحساب');
-    var sar=parseNum($('exSar').value); if(!(sar>0)) throw new Error('اكتب المبلغ بالسعودي');
-    var y=parseNum($('exYer').value);
-    var p={ts:Date.now(),action:'exchange',account:pick.ex,sar:sar,amount:sar}; if(y>0) p.yer=y;
-    return p;
-  },this);
 });
 
 /* ---------- مستحقاتي (الشركة + أشخاص) ---------- */
@@ -1131,17 +1080,16 @@ function duesHtml(d,withDel){
     h+='<div class="sum-top" style="margin-top:12px"><span class="sum-month">'+esc(p.name)+'</span><span class="badge '+(p.remaining>0?'warn':'ok')+'">'+(p.remaining>0?'باقي '+fmt(p.remaining):'مسدَّدة')+'</span></div>';
     h+='<div class="sum-row"><span>دفعتُ عنهم <b>'+fmt(p.claimed)+'</b></span><span>استرجعتُ <b>'+fmt(p.repaid)+'</b></span></div>';
     if((p.open||[]).length) h+='<div class="parts">'+p.open.map(function(o){
-      return '<div class="part"><span>'+esc(o.desc||'')+(o.yer?' · '+fmt(o.yer)+' يمني':'')+(o.pending?' · ⏳':'')+(o.left<o.amount?' · باقي '+fmt(o.left):'')+'</span><b>'+fmt(o.amount)+'</b>'+(withDel?delBtn(o,(o.desc||'')+' — '+fmt(o.amount)):'')+'</div>'}).join('')+'</div>';
+      return '<div class="part"><span>'+esc(o.desc||'')+(o.pending?' · ⏳':'')+(o.left<o.amount?' · باقي '+fmt(o.left):'')+'</span><b>'+fmt(o.amount)+'</b>'+(withDel?delBtn(o,(o.desc||'')+' — '+fmt(o.amount)):'')+'</div>'}).join('')+'</div>';
     if(withDel&&(p.repayments||[]).length) h+='<div class="sm2" style="margin-top:6px">آخر ما استرجعته من '+esc(p.name)+'</div><div class="parts">'+p.repayments.map(function(o){
       return '<div class="part"><span>'+esc(o.desc||'استرجاع')+' · '+esc(o.account||'')+(o.pending?' · ⏳':' · '+esc(t12(o.date)))+'</span><b>+'+fmt(o.amount)+'</b>'+delBtn(o,'استرجاع '+fmt(o.amount))+'</div>'}).join('')+'</div>';
   });
   return h;
 }
 function renderDues(){
-  var d=view&&view.dues, el=$('duesCard'); if(!el) return;
-  if(!d||(!d.claimed&&!d.repaid&&!(d.parties||[]).some(function(p){return p.claimed||p.repaid}))){el.classList.add('hidden');return}
-  el.classList.remove('hidden');
-  d=normDues(d);
+  var el=$('duesCard'); if(!el||!view) return;
+  var d=normDues(view.dues);
+  if(!d.claimed&&!d.repaid){el.innerHTML='<div class="sum-top"><span class="sum-month">مستحقاتي عند الآخرين</span></div><div class="empty">ما فيه مستحقات. لما تدفع عن أحد أو تعطيه مبلغ بيرجع لك، سجّله هنا.</div>';return}
   el.innerHTML='<div class="sum-top"><span class="sum-month">مستحقاتي عند الآخرين</span><span class="badge '+(d.remaining>0?'warn':'ok')+'">'+(d.remaining>0?'باقي لك':'مسدَّدة')+'</span></div>'+duesHtml(d,true);
 }
 
@@ -1149,22 +1097,22 @@ function renderDues(){
 var prefBusy=false;
 function prefetchReports(months){          // يحفظ كل الأشهر للعرض بدون نت
   if(prefBusy||!months||!cfg.url||!cfg.pin) return;
-  var todo=months.slice(-12).map(function(m){return m.key}).filter(function(k){return !store.get('rep:'+k,null)});
+  var todo=months.slice(-12).map(function(m){return m.key}).filter(function(k){return !store.get('rep6:'+k,null)});
   if(!todo.length) return;
   prefBusy=true;
   var go=function(){
     var k=todo.shift(); if(!k||locked){prefBusy=false;return}
-    api('GET',null,null,{action:'report',month:k}).then(function(r){if(r&&r.ok)store.set('rep:'+r.month.key,r)}).then(go,function(){prefBusy=false});
+    api('GET',null,null,{action:'report',month:k}).then(function(r){if(r&&r.ok)store.set('rep6:'+r.month.key,r)}).then(go,function(){prefBusy=false});
   };
   setTimeout(go,1500);
 }
 function loadReport(key){
   var k=key||''; rep.want=k;
-  var cached=k?store.get('rep:'+k,null):null;
+  var cached=k?store.get('rep6:'+k,null):null;
   if(cached) drawReport(cached,true); else if(!rep.data) $('repBody').innerHTML='<div class="empty" style="text-align:center;padding:30px 0">جارٍ التحميل…</div>';
   if(!cfg.url||!cfg.pin||locked) return;
   api('GET',null,null,{action:'report',month:k}).then(function(r){
-    if(r&&r.ok){ store.set('rep:'+r.month.key,r); if(page==='report'&&(!rep.want||rep.want===r.month.key)) drawReport(r,false); markSync(true); prefetchReports(r.months) }
+    if(r&&r.ok){ store.set('rep6:'+r.month.key,r); if(page==='report'&&(!rep.want||rep.want===r.month.key)) drawReport(r,false); markSync(true); prefetchReports(r.months) }
     else if(r&&r.error) toast(r.error,{err:true,ms:6000});
   }).catch(function(){ markSync(false); if(!cached&&!rep.data) $('repBody').innerHTML='<div class="empty" style="text-align:center;padding:30px 0">تحتاج اتصال لعرض التقرير.</div>' });
 }
@@ -1175,36 +1123,25 @@ function drawReport(r,fromCache){
   sel.value=r.month.key;
   var idx=-1; r.months.forEach(function(m,i){if(m.key===r.month.key)idx=i});
   $('mPrev').disabled=idx<=0; $('mNext').disabled=idx<0||idx>=r.months.length-1;
-  var L=r.limit, h='';
+  var h='';
   if(fromCache) h+='<div class="note">نسخة محفوظة على الجوال — بتتحدث عند توفر الاتصال</div>';
-  h+='<div class="kpis">'+
-    kpi('الدخل',fmt(r.income),'pos')+kpi('مصاريف شهرية',fmt(r.monthly),'')+
-    kpi('دفعات البنود',fmt(r.external),'')+kpi('الصافي',(r.net>0?'+':'')+fmt(r.net),r.net>=0?'pos':'neg')+'</div>';
+  var S=r.sum;
+  if(!S){$('repBody').innerHTML='<div class="empty" style="text-align:center;padding:30px 0">جارٍ التحديث…</div>';return}
+  h+='<div class="kpis">'+kpi('الدخل',fmt(S.income),'pos')+kpi('إجمالي الصرف',fmt(S.out),'')+
+    kpi('استرجعت',fmt(S.repaid),'pos')+kpi('الصافي',(S.net>0?'+':'')+fmt(S.net),S.net>=0?'pos':'neg')+'</div>';
+  var mx=Math.max(S.monthly,S.payments,S.claims);
+  h+='<section class="card"><h2 class="t">وين راحت الفلوس؟</h2>'+barRow('المصروف الشهري',S.monthly,mx)+barRow('دفعات البنود',S.payments,mx)+barRow('دفعت عن غيري (مستحقات)',S.claims,mx,'ترجع لك')+'</section>';
+  var pm=(r.items||[]).filter(function(i){return i.monthPaid>0}).sort(function(a,b){return b.monthPaid-a.monthPaid});
+  if(pm.length) h+='<section class="card"><h2 class="t">دفعات البنود هذا الشهر</h2>'+pm.map(function(i){return barRow(i.name,i.monthPaid,pm[0].monthPaid)}).join('')+'</section>';
   if(r.accounts&&r.accounts.length){
     h+='<section class="card"><h2 class="t">الحسابات</h2>'+r.accounts.map(function(a){
-      return '<div class="accrow"><div class="ar"><span>'+esc(a.name)+'</span><span>'+balHtml(a.sar!=null?a.sar:a.balance)+' <small>ر.س</small></span></div>'+(a.yer!=null?'<div class="sm2" style="display:flex;justify-content:space-between;font-size:14px;color:var(--ink)"><span>يمني</span><span>'+balHtml(a.yer)+' <small>ر.ي</small></span></div>':'')+'<div class="sm2">هذا الشهر: دخل '+fmt(a.inn)+' · صرف '+fmt(a.out)+'</div></div>'}).join('')+
-      '<div class="tot"><span>الإجمالي (بالسعودي)</span>'+balHtml(r.balance)+'</div></section>';
+      return '<div class="accrow"><div class="ar"><span>'+esc(a.name)+'</span><span>'+balHtml(a.balance)+' <small>ر.س</small></span></div><div class="sm2">هذا الشهر: دخل '+fmt(a.inn)+' · خرج '+fmt(a.out)+'</div></div>'}).join('')+
+      '<div class="tot"><span>الإجمالي الآن</span>'+balHtml(r.balance)+'</div></section>';
   }
-  if(r.purposes&&r.purposes.length){
-    var ptot=r.purposes.reduce(function(a,x){return a+x.amount},0)||1;
-    h+='<section class="card"><h2 class="t">لنفسي أم للبيت؟ (المصاريف الشهرية)</h2>'+r.purposes.map(function(x){
-      return '<div class="pb"><div class="r"><span>'+esc(x.name)+'</span><b>'+fmt(x.amount)+' <span style="color:var(--mute);font-weight:600;font-size:12px">'+Math.round(x.amount/ptot*100)+'%</span></b></div><div class="bar thin acc"><i style="width:'+Math.round(x.amount/ptot*100)+'%"></i></div></div>'}).join('')+
-      (r.home?'<div class="sum-row" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px"><span>للبيت (مصاريف + دفعات بنود)</span><b>'+fmt(r.home.total)+'</b></div>':'')+'</section>';
-  }
-  h+='<section class="card"><div class="sum-top"><span class="sum-month">حد المصروف الشهري</span><span class="badge '+L.status+'">'+({bad:'تجاوزت الحد',warn:'قارب الحد',ok:'ضمن الحد','':'—'}[L.status])+'</span></div>'+
-    '<div class="big">'+fmt(L.spent)+' <small>من '+fmt(L.amount)+' ريال</small></div>'+
-    '<div class="bar '+L.status+'"><i style="width:'+Math.min(100,L.pct)+'%"></i></div>'+
-    '<div class="sum-row"><span>المتبقي <b>'+fmt(L.remaining)+'</b></span><span>'+L.count+' عملية</span></div>'+
-    ((L.exchanged>0||L.yerPaid>0)?'<div class="hintline" style="margin-top:8px">'+(L.exchanged>0?'يشمل صرف عملة '+fmt(L.exchanged)+' ر.س. ':'')+(L.yerPaid>0?'مصروف اليمني من المحفظة ('+fmt(L.yerPaid)+' ر.س) غير محسوب هنا لأنه انحسب عند الصرف.':'')+'</div>':'')+'</section>';
-  // تصنيفات
-  h+='<section class="card"><h2 class="t">المصاريف حسب التصنيف</h2>';
-  if(r.categories.length){var mx=r.categories[0].amount||1;
-    h+=r.categories.map(function(c){return '<div class="cat"><div class="r"><span>'+esc(c.name)+'</span><b>'+fmt(c.amount)+'</b></div><div class="bar thin acc"><i style="width:'+Math.round(c.amount/mx*100)+'%"></i></div></div>'}).join('');
-  } else h+='<div class="empty">ما فيه مصاريف في هذا الشهر.</div>';
-  h+='</section>';
+  if(r.dues&&(r.dues.claimed||r.dues.repaid)) h+='<section class="card"><h2 class="t">مستحقاتي عند الآخرين</h2>'+duesHtml(r.dues,false)+'</section>';
   // البنود
-  h+='<section class="card"><h2 class="t">البنود الخارجية</h2>';
-  var shown=r.items.filter(function(i){return i.paid>0||i.budget});
+  h+='<section class="card"><h2 class="t">البنود (كل الفترة)</h2>';
+  var shown=(r.items||[]).filter(function(i){return i.paid>0||i.budget});
   if(shown.length){
     h+=shown.map(function(i){
       var hasB=i.budget!=null&&i.budget>0, pct=hasB?Math.min(100,Math.round(i.paid/i.budget*100)):0;
@@ -1217,21 +1154,14 @@ function drawReport(r,fromCache){
     h+='<div class="sum-row" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px"><span>الميزانيات <b>'+fmt(T.budget)+'</b></span><span>المدفوع <b>'+fmt(T.paid)+'</b></span></div>';
   } else h+='<div class="empty">ما فيه بنود.</div>';
   h+='</section>';
-  // القوائم
-  if(r.dues&&(r.dues.claimed||r.dues.repaid)){
-    h+='<section class="card"><h2 class="t">مستحقاتي عند الآخرين</h2>'+duesHtml(r.dues,false)+'</section>';
-  }
-  h+=listSec('المصاريف',r.expenses,'expense',function(o){return {t:o.desc||o.category,s:o.category+(o.purpose?' · '+o.purpose:'')+(o.account?' · '+o.account:'')+(o.yer?' · '+fmt(o.yer)+' يمني':'')+(o.w?' (من محفظة اليمني، غير محسوب على الحد)':'')+' · '+t12(o.date),a:fmt(o.amount),c:''}});
-  h+=listSec('الدفعات',r.payments,'payment',function(o){return {t:o.item+(o.part?' — '+o.part:''),s:(o.method?o.method+' · ':'')+(o.account?o.account+' · ':'')+(o.notes?o.notes+' · ':'')+t12(o.date),a:fmt(o.amount),c:''}});
-  h+=listSec('المداخيل',r.incomes,'income',function(o){return {t:o.desc||o.source,s:o.source+(o.account?' · '+o.account:'')+' · '+t12(o.date),a:'+'+fmt(o.amount),c:'pos'}});
-  h+=listSec('الصرف (سعودي ← يمني)',r.exchanges||[],'exchange',function(o){return {t:o.account+': '+fmt(o.sar)+' ر.س ← '+fmt(o.yer)+' ر.ي',s:'سعر '+fmt(o.rate)+' · '+t12(o.date),a:fmt(o.sar),c:''}});
-  h+=listSec('المستحقات (دفعت عن غيري / استرجعت)',r.claims||[],'claim',function(o){return {t:(o.type==='claim'?'دفعتُ عن ':'استرجعتُ من ')+(o.party||DEFP)+': '+(o.desc||''),s:(o.account||'')+(o.yer?' · '+fmt(o.yer)+' يمني':'')+' · '+t12(o.date),a:(o.type==='claim'?'':'+')+fmt(o.amount),c:o.type==='claim'?'':'pos'}});
+  h+=listSec('الدفعات',r.payments||[],'payment',function(o){return {t:o.item+(o.part?' — '+o.part:''),s:(o.method?o.method+' · ':'')+(o.account?o.account+' · ':'')+(o.notes?o.notes+' · ':'')+t12(o.date),a:fmt(o.amount),c:''}});
+  h+=listSec('المصروف الشهري',r.monthlyList||[],'monthly',function(o){return {t:o.desc||'مصروف شهري',s:(o.account||'')+(o.old?' · (مصروف يومي قديم)':'')+' · '+t12(o.date),a:fmt(o.amount),c:''}});
+  h+=listSec('المستحقات (دفعت عن غيري / استرجعت)',r.claims||[],'claim',function(o){return {t:(o.type==='claim'?'دفعتُ عن ':'استرجعتُ من ')+(o.party||DEFP)+(o.desc?': '+o.desc:''),s:(o.account||'')+' · '+t12(o.date),a:(o.type==='claim'?'':'+')+fmt(o.amount),c:o.type==='claim'?'':'pos'}});
+  h+=listSec('المداخيل',r.incomes||[],'income',function(o){return {t:o.desc||o.source,s:o.source+(o.account?' · '+o.account:'')+' · '+t12(o.date),a:'+'+fmt(o.amount),c:'pos'}});
   h+=listSec('التحويلات',r.transfers||[],'transfer',function(o){return {t:'من '+o.from+' إلى '+o.to,s:(o.notes?o.notes+' · ':'')+t12(o.date),a:fmt(o.amount),c:''}});
-  // كل الأشهر
-  h+='<section class="card"><h2 class="t">كل الأشهر</h2><div class="tblw"><table><thead><tr><th>الشهر</th><th>الدخل</th><th>شهري</th><th>بنود</th><th>الصافي</th></tr></thead><tbody>'+
-    r.all.slice().reverse().map(function(a){return '<tr'+(a.key===r.month.key?' class="cur"':'')+'><td>'+esc(a.label)+'</td><td>'+fmt(a.income)+'</td><td>'+fmt(a.monthly)+'</td><td>'+fmt(a.external)+'</td><td class="'+(a.net>=0?'pos':'neg')+'">'+fmt(a.net)+'</td></tr>'}).join('')+
+  h+='<section class="card"><h2 class="t">كل الأشهر</h2><div class="tblw"><table><thead><tr><th>الشهر</th><th>الدخل</th><th>الصرف</th><th>بنود</th><th>الصافي</th></tr></thead><tbody>'+
+    (r.all||[]).slice().reverse().map(function(a){return '<tr'+(a.key===r.month.key?' class="cur"':'')+'><td>'+esc(a.label)+'</td><td>'+fmt(a.income)+'</td><td>'+fmt(a.out)+'</td><td>'+fmt(a.payments)+'</td><td class="'+(a.net>=0?'pos':'neg')+'">'+fmt(a.net)+'</td></tr>'}).join('')+
     '</tbody></table></div></section>';
-  h+='<div class="note">إجمالي الحسابات الآن: '+balHtml(r.balance)+' ريال</div>';
   $('repBody').innerHTML=h;
 }
 function kpi(l,v,c){return '<div class="kpi"><span>'+l+'</span><b class="'+c+'">'+v+'</b></div>'}
@@ -1265,7 +1195,6 @@ function renderSettings(){
   else if(online===true || lastSync){dot.className='dot ok';tx.textContent='مرتبط بالملف'+(lastSync?' · آخر تحديث '+hhmm(lastSync):'')}
   else {dot.className='dot';tx.textContent='جارٍ الاتصال…'}
   $('lockSel').value=String(lockSec);
-  if(document.activeElement!==$('rateIn')&&state) $('rateIn').value=String(RATE);
   $('storeWarn').classList.toggle('hidden',storageOK);
   var sb=$('btnSheet'); if(SHEETURL){sb.href=SHEETURL;sb.classList.remove('hidden')}
 }
@@ -1275,14 +1204,6 @@ $('btnSync').addEventListener('click',function(){
 });
 $('lockSel').addEventListener('change',function(){lockSec=Number(this.value);store.set('lockSec',lockSec);toast('تم الحفظ ✓')});
 $('btnLockNow').addEventListener('click',lockApp);
-$('btnRate').addEventListener('click',function(){
-  var v=parseFloat(String($('rateIn').value).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)}).replace('،','.').replace(',','.'));
-  if(!(v>=10)){toast('سعر الصرف غير صحيح',{err:true});return}
-  api('POST',{action:'setrate',rate:v}).then(function(x){
-    if(x&&x.ok){state=x.state;store.set('state',state);render();toast('تم حفظ سعر الصرف ✓')}
-    else toast((x&&x.error)||'تعذّر',{err:true,ms:6000});
-  }).catch(function(){toast('تحتاج اتصال',{err:true})});
-});
 $('btnChgPin').addEventListener('click',function(){
   var o=normPin($('oldPin').value), n=normPin($('newPin').value);
   if(o!==cfg.pin){toast('الرقم الحالي غير صحيح',{err:true});return}
@@ -1301,8 +1222,8 @@ $('btnForget').addEventListener('click',function(){
 });
 
 /* ================= تشغيل ================= */
-var savedPage=store.get('page','expense');
-fitViewport(); setPage(ORDER.indexOf(savedPage)>=0?savedPage:'expense'); placePill(false);
+var savedPage=store.get('page','home');
+fitViewport(); setPage(ORDER.indexOf(savedPage)>=0?savedPage:'home'); placePill(false);
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){placePill(false)});
 render();
 if(!cfg.url||!cfg.pin){ showSetup(); }
